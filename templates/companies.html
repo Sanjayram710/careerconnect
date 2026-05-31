@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Corporate Insights & Partners - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="h3 fw-bold text-dark mb-1">Company News & Insights Portal</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Explore corporate intelligence, real-time news headlines, recruitment updates, and career opportunities from our placement partners.</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('student.bookmarked_news_list') }}" class="btn btn-outline-primary py-2 px-3 align-items-center gap-2 d-inline-flex">
+            <i class="fa-solid fa-bookmark"></i>
+            <span>Bookmarked Insights</span>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Content Panel (Left & Center) -->
+    <div class="col-lg-9 col-md-8">
+        <!-- Integrated Search Panels -->
+        <div class="card border-0 mb-4 p-4" style="background: var(--bg-surface);">
+            <form action="{{ url_for('student.companies_list') }}" method="GET" class="row g-3">
+                <!-- Search Company -->
+                <div class="col-md-6">
+                    <label class="form-label text-muted fw-semibold small mb-1"><i class="fa-solid fa-building me-1.5 text-primary"></i> Search Partner Directory</label>
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-light" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                        <input type="text" name="search" class="form-control" placeholder="Search by name, industry, description..." value="{{ search_query or '' }}" style="padding-left: 2.5rem !important;">
+                    </div>
+                </div>
+                <!-- Search News inside Company -->
+                <div class="col-md-6">
+                    <label class="form-label text-muted fw-semibold small mb-1"><i class="fa-solid fa-newspaper me-1.5 text-secondary"></i> Search News & Insights</label>
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-light" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                        <input type="text" name="news_search" class="form-control" placeholder="Search keywords in recent articles..." value="{{ news_search or '' }}" style="padding-left: 2.5rem !important;">
+                    </div>
+                </div>
+                <!-- Action Buttons -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                    {% if search_query or news_search %}
+                        <a href="{{ url_for('student.companies_list') }}" class="btn btn-secondary py-2 px-4">Clear Filters</a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary py-2 px-4">Apply Searches</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Grid of Companies -->
+        <div class="row g-4">
+            {% if companies %}
+                {% for comp in companies %}
+                    <div class="col-lg-6 col-12">
+                        <div class="card border-0 h-100 p-4 d-flex flex-column justify-content-between">
+                            <div>
+                                <!-- Card Header -->
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3" style="border-color: var(--border-color) !important;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="position-relative">
+                                            <!-- Logo fetch with custom initials fallback -->
+                                            <img src="https://logo.clearbit.com/{{ comp.name.lower() }}.com" 
+                                                 alt="{{ comp.name }} Logo" 
+                                                 class="rounded-3" 
+                                                 style="width: 50px; height: 50px; object-fit: contain; background: #fff; padding: 4px; border: 1px solid var(--border-color);"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="navbar-avatar d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-weight: bold; border-radius: 10px; font-size: 1.35rem; display: none;">
+                                                {{ comp.name[:2].upper() }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="h6 fw-bold text-dark mb-0 fs-5">{{ comp.name }}</h3>
+                                            <span class="text-primary small fw-semibold" style="font-size: 0.78rem;">{{ comp.industry }}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-link p-2 text-muted refresh-news-btn" 
+                                                data-company="{{ comp.name }}" 
+                                                title="Refresh Cached News" 
+                                                style="border-radius: 50% !important; background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                                            <i class="fa-solid fa-rotate text-secondary"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- HQ and Size Stats -->
+                                <div class="row g-2 mb-3 text-muted small" style="font-size: 0.76rem;">
+                                    <div class="col-6">
+                                        <i class="fa-solid fa-location-dot text-danger me-1"></i> HQ: <strong>{{ comp.hq }}</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <i class="fa-solid fa-users text-primary me-1"></i> Size: <strong>{{ comp.size }}</strong>
+                                    </div>
+                                </div>
+
+                                <!-- About Text -->
+                                <p class="text-muted mb-3" style="font-size: 0.8rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{ comp.about }}
+                                </p>
+
+                                <!-- Real-time News Highlights Container -->
+                                <div class="news-highlights-preview mb-4 p-3 rounded-3" style="background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                                    <h4 class="fw-bold text-secondary mb-2" style="font-size: 0.72rem; letter-spacing: 0.6px; text-transform: uppercase;">
+                                        <i class="fa-solid fa-bolt text-warning me-1.5"></i> News Highlights & Activity
+                                    </h4>
+                                    {% if comp.news_highlights %}
+                                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2.5">
+                                            {% for art in comp.news_highlights %}
+                                                <li class="pb-2 border-bottom last-border-none" style="border-color: rgba(226, 232, 240, 0.5) !important;">
+                                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1.5">
+                                                        <span class="text-muted" style="font-size: 0.66rem; font-weight: 550;">{{ art.source }} • {{ art.published_at[:10] }}</span>
+                                                        {% if art.tags %}
+                                                            <span class="badge bg-primary-subtle text-primary" style="font-size: 0.6rem; padding: 0.2rem 0.4rem; border-radius: 4px;">{{ art.tags[0] }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <a href="{{ art.url }}" target="_blank" class="fw-semibold d-block news-headline-link" style="font-size: 0.76rem; line-height: 1.4; color: var(--text-primary); text-decoration: none;">
+                                                        {{ art.title }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <div class="text-center py-2 text-muted" style="font-size: 0.74rem;">
+                                            <i class="fa-solid fa-newspaper-o mb-1 d-block opacity-50"></i>
+                                            No news highlights available
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Card Footer -->
+                            <div class="border-top pt-3 d-flex align-items-center justify-content-between" style="border-color: var(--border-color) !important;">
+                                <div>
+                                    <span class="badge bg-primary-subtle text-primary" style="font-size: 0.72rem; padding: 0.35rem 0.55rem;">
+                                        {{ comp.open_roles }} Open Positions
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('student.jobs_list', search=comp.name) }}" class="btn btn-secondary btn-sm py-1.5 px-3" style="font-size: 0.76rem !important; border-radius: 8px !important;">
+                                        Browse Jobs
+                                    </a>
+                                    <a href="{{ url_for('student.company_details', company_name=comp.name) }}" class="btn btn-primary btn-sm py-1.5 px-3" style="font-size: 0.76rem !important; border-radius: 8px !important; font-weight: 600;">
+                                        Latest News
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5 text-muted card border-0">
+                    <div class="py-4">
+                        <i class="fa-solid fa-building-circle-exclamation fs-1 mb-3 text-light"></i>
+                        <h4 class="fw-bold text-dark">No Company Dossiers Match Your Filters</h4>
+                        <p class="mb-3 small">Try clearing your filters or changing your search keywords.</p>
+                        <a href="{{ url_for('student.companies_list') }}" class="btn btn-primary btn-sm px-4">Reset Directory Search</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar Widget Panel (Right) -->
+    <div class="col-lg-3 col-md-4">
+        <!-- Trending Companies Widget -->
+        <div class="card border-0 mb-4 p-4" style="background: var(--bg-surface);">
+            <h4 class="h6 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-fire text-danger"></i>
+                <span>Trending Companies</span>
+            </h4>
+            <p class="text-muted mb-3" style="font-size: 0.76rem;">Ranked by open placement vacancies and corporate hiring activity.</p>
+            
+            <div class="d-flex flex-column gap-3">
+                {% if trending_companies %}
+                    {% for tc in trending_companies %}
+                        <div class="p-3 rounded-3 d-flex flex-column gap-2" style="background: var(--bg-canvas); border: 1px solid var(--border-color); transition: var(--transition);">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ tc.name }}</span>
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 0.65rem;">Trending</span>
+                            </div>
+                            <span class="text-muted d-block" style="font-size: 0.74rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{ tc.industry }}</span>
+                            <div class="d-flex align-items-center justify-content-between pt-1 mt-1 border-top" style="border-color: rgba(226,232,240,0.6) !important;">
+                                <span style="font-size: 0.74rem; color: var(--text-secondary); font-weight: 550;">{{ tc.open_roles }} active roles</span>
+                                <a href="{{ url_for('student.company_details', company_name=tc.name) }}" class="text-primary fw-semibold text-decoration-none" style="font-size: 0.74rem;">
+                                    View Dossier <i class="fa-solid fa-angle-right ms-0.5"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <span class="text-muted small">No data compiled yet.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bookmark Spotlight Widget -->
+        <div class="card border-0 p-4" style="background: var(--bg-surface);">
+            <h4 class="h6 fw-bold text-dark mb-2.5 d-flex align-items-center gap-2">
+                <i class="fa-regular fa-star text-warning"></i>
+                <span>Your Insights Dashboard</span>
+            </h4>
+            <p class="text-muted mb-3.5" style="font-size: 0.76rem;">Save and track articles regarding hiring drives, technological breakthroughs, and financial insights.</p>
+            <a href="{{ url_for('student.bookmarked_news_list') }}" class="btn btn-secondary w-100 py-2.5 fs-7 font-weight-550" style="font-size: 0.78rem !important;">
+                Go to Bookmarks Folder
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Handle AJAX Manual News Refresh
+    const refreshButtons = document.querySelectorAll('.refresh-news-btn');
+    
+    refreshButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const companyName = btn.dataset.company;
+            const icon = btn.querySelector('i');
+            
+            // Add rotate spinner animation
+            icon.classList.add('fa-spin');
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`/company/${encodeURIComponent(companyName)}/refresh`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    // Reload the page to show updated news in the highlights preview container
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    showToast(result.message, 'danger');
+                    icon.classList.remove('fa-spin');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to connect to the news server.', 'danger');
+                icon.classList.remove('fa-spin');
+                btn.disabled = false;
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.news-headline-link:hover {
+    color: var(--primary) !important;
+}
+.last-border-none:last-child {
+    border-bottom: none !important;
+}
+</style>
+{% endblock %}

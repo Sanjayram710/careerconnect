@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1">Admin Control Panel 🛡️</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Manage job listings, review applicant pipelines, update statuses, and send notifications to users.</p>
+    </div>
+</div>
+
+<!-- Admin Metrics Row -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-sm-6">
+        <div class="metric-card">
+            <div class="metric-icon-box primary">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <span class="d-block fs-4 fw-bold text-dark mb-0 leading-none">{{ users_only|length }}</span>
+                <span class="text-muted" style="font-size: 0.78rem; font-weight: 500;">Registered Users</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6">
+        <div class="metric-card">
+            <div class="metric-icon-box secondary">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+                <span class="d-block fs-4 fw-bold text-dark mb-0 leading-none">{{ jobs|length }}</span>
+                <span class="text-muted" style="font-size: 0.78rem; font-weight: 500;">Active Listings</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6">
+        <div class="metric-card">
+            <div class="metric-icon-box info">
+                <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div>
+                <span class="d-block fs-4 fw-bold text-dark mb-0 leading-none">{{ applications|length }}</span>
+                <span class="text-muted" style="font-size: 0.78rem; font-weight: 500;">Total Applications</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-sm-6">
+        <div class="metric-card">
+            <div class="metric-icon-box success">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <div>
+                <span class="d-block fs-4 fw-bold text-dark mb-0 leading-none">{{ offers_count }}</span>
+                <span class="text-muted" style="font-size: 0.78rem; font-weight: 500;">Offers Extended</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8 d-flex flex-column gap-4">
+
+        <!-- Applications Queue -->
+        <div class="card border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 fw-bold text-dark mb-0">Applicant Pipeline</h2>
+                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.72rem; padding: 0.35rem 0.6rem;">Live Review</span>
+            </div>
+
+            {% if applications %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Position / Company</th>
+                                <th>Experience</th>
+                                <th>Resume</th>
+                                <th class="text-end">Update Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block" style="font-size: 0.88rem;">{{ app.student.name }}</span>
+                                            <span class="text-muted small" style="font-size: 0.72rem;">{{ app.student.email }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block" style="font-size: 0.88rem;">{{ app.job.role }}</span>
+                                            <span class="text-primary fw-semibold small" style="font-size: 0.72rem;">{{ app.job.company_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted fw-semibold" style="font-size: 0.82rem;">{{ app.student.experience or '—' }}</td>
+                                    <td>
+                                        {% if app.student.resume_link %}
+                                            <a href="{{ app.student.resume_link }}" target="_blank" class="btn btn-secondary py-1 px-2 btn-sm d-inline-flex align-items-center gap-1" style="font-size: 0.75rem !important; border-radius: 6px !important;">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+                                            </a>
+                                        {% elif app.student.resume_filename %}
+                                            <a href="{{ url_for('admin.download_resume', student_id=app.student.id) }}" class="btn btn-secondary py-1 px-2 btn-sm d-inline-flex align-items-center gap-1" style="font-size: 0.75rem !important; border-radius: 6px !important;">
+                                                <i class="fa-solid fa-download"></i> PDF
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small italic">No Resume</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <form action="{{ url_for('admin.update_status', app_id=app.id) }}" method="POST" class="d-inline-block">
+                                            <select name="status" class="form-select form-select-sm" style="width: 135px; font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.5rem !important;" onchange="this.form.submit()">
+                                                <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
+                                                <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                                                <option value="Interviewing" {% if app.status == 'Interviewing' %}selected{% endif %}>Interviewing</option>
+                                                <option value="Offered" {% if app.status in ['Offered', 'Selected'] %}selected{% endif %}>Offered</option>
+                                                <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-list-check fs-2 mb-3 text-light"></i>
+                    <p class="mb-0 small">No job applications submitted yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- User Directory -->
+        <div class="card border-0 p-4">
+            <h2 class="h5 fw-bold text-dark mb-3">Registered Users Directory</h2>
+
+            {% if users_only %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>Experience</th>
+                                <th>Skills</th>
+                                <th>Resume</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usr in users_only %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block" style="font-size: 0.88rem;">{{ usr.name }}</span>
+                                            <span class="text-muted small" style="font-size: 0.72rem;">{{ usr.email }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-muted fw-medium" style="font-size: 0.82rem;">
+                                        <i class="fa-solid fa-location-dot text-danger me-1"></i>{{ usr.location or '—' }}
+                                    </td>
+                                    <td class="text-muted fw-medium" style="font-size: 0.82rem;">{{ usr.experience or '—' }}</td>
+                                    <td style="max-width: 200px;">
+                                        {% if usr.skills %}
+                                            <span class="text-muted small" style="font-size: 0.75rem;">{{ usr.skills[:60] }}{% if usr.skills|length > 60 %}...{% endif %}</span>
+                                        {% else %}
+                                            <span class="text-muted small italic">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if usr.resume_filename %}
+                                            <a href="{{ url_for('admin.download_resume', student_id=usr.id) }}" class="text-primary text-decoration-none fw-bold small">
+                                                <i class="fa-solid fa-download me-1"></i>PDF
+                                            </a>
+                                        {% elif usr.resume_link %}
+                                            <a href="{{ usr.resume_link }}" target="_blank" class="text-primary text-decoration-none fw-bold small">
+                                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Link
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted small italic">Not Uploaded</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-user-plus fs-2 mb-3 text-light"></i>
+                    <p class="mb-0 small">No user accounts registered yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Right Column: Admin Tools -->
+    <div class="col-lg-4 d-flex flex-column gap-4">
+
+        <!-- System Sync Monitor Card -->
+        <div class="card border-0 p-4">
+            <h2 class="h5 fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-server text-success"></i> System Sync Monitor
+            </h2>
+            <div class="p-3 rounded-3 mb-3" style="background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark" style="font-size: 0.85rem;"><i class="fa-solid fa-briefcase me-1 text-primary"></i> Jobs API Sync</span>
+                    <span class="badge bg-secondary-subtle text-secondary" id="adminJobsBadge" style="font-size: 0.72rem;">Pending</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size: 0.76rem; line-height: 1.5;">
+                    <div>Last Sync: <span id="adminJobsLast" class="fw-semibold text-dark">—</span></div>
+                    <div>Next Sync: <span id="adminJobsNext" class="fw-semibold text-dark">—</span></div>
+                    <div>Total Live: <span id="adminJobsCount" class="fw-semibold text-dark">—</span></div>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-semibold d-flex align-items-center justify-content-center gap-1" id="triggerJobsBtn" onclick="runManualSync('jobs')">
+                    <i class="fa-solid fa-rotate-right" id="jobsSyncIcon"></i> Sync Jobs Now
+                </button>
+            </div>
+
+            <div class="p-3 rounded-3" style="background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark" style="font-size: 0.85rem;"><i class="fa-solid fa-laptop-code me-1 text-info"></i> Internships API Sync</span>
+                    <span class="badge bg-secondary-subtle text-secondary" id="adminInternshipsBadge" style="font-size: 0.72rem;">Pending</span>
+                </div>
+                <div class="text-muted mb-2" style="font-size: 0.76rem; line-height: 1.5;">
+                    <div>Last Sync: <span id="adminInternshipsLast" class="fw-semibold text-dark">—</span></div>
+                    <div>Next Sync: <span id="adminInternshipsNext" class="fw-semibold text-dark">—</span></div>
+                    <div>Total Live: <span id="adminInternshipsCount" class="fw-semibold text-dark">—</span></div>
+                </div>
+                <button type="button" class="btn btn-outline-info btn-sm w-100 fw-semibold d-flex align-items-center justify-content-center gap-1" id="triggerInternshipsBtn" onclick="runManualSync('internships')">
+                    <i class="fa-solid fa-rotate-right" id="internshipsSyncIcon"></i> Sync Internships Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Post New Job / Internship -->
+        <div class="card border-0 p-4">
+            <h2 class="h5 fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-plus text-primary"></i> Post a Listing
+            </h2>
+
+            <form action="{{ url_for('admin.add_job') }}" method="POST">
+                <div class="mb-3">
+                    <label for="company_name" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" class="form-control" placeholder="e.g. Google" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Job Title / Role</label>
+                    <input type="text" id="role" name="role" class="form-control" placeholder="e.g. Software Engineer" required>
+                </div>
+
+                <!-- Job Type -->
+                <div class="mb-3">
+                    <label for="job_type" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Listing Type</label>
+                    <select id="job_type" name="job_type" class="form-select">
+                        <option value="Full-Time">Full-Time</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Part-Time">Part-Time</option>
+                        <option value="Contract">Contract / Freelance</option>
+                    </select>
+                </div>
+
+                <!-- Compensation & Experience Row -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="package" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Compensation</label>
+                        <input type="text" id="package" name="package" class="form-control" placeholder="e.g. 32 LPA" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="experience_required" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Experience Required</label>
+                        <select id="experience_required" name="experience_required" class="form-select">
+                            <option value="Any">Any / Fresher</option>
+                            <option value="1+ years">1+ Years</option>
+                            <option value="2+ years">2+ Years</option>
+                            <option value="3+ years">3+ Years</option>
+                            <option value="5+ years">5+ Years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Location & Drive Date -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="location" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Location</label>
+                        <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Bangalore / Remote" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="drive_date" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Interview Date</label>
+                        <input type="date" id="drive_date" name="drive_date" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Skills Required -->
+                <div class="mb-3">
+                    <label for="skills_required" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Skills Required</label>
+                    <input type="text" id="skills_required" name="skills_required" class="form-control" placeholder="Python, React, SQL..." required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="website" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Company Website</label>
+                    <input type="url" id="website" name="website" class="form-control" placeholder="https://careers.company.com">
+                </div>
+
+                <!-- Application Deadline -->
+                <div class="mb-3">
+                    <label for="last_date" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Application Deadline</label>
+                    <input type="date" id="last_date" name="last_date" class="form-control" required>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label for="description" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Job Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" placeholder="Describe responsibilities, requirements, and benefits..." required style="resize: vertical; min-height: 80px;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="fa-solid fa-bullhorn me-2"></i> Post & Notify Users
+                </button>
+            </form>
+        </div>
+
+        <!-- Send Notification -->
+        <div class="card border-0 p-4">
+            <h2 class="h5 fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-paper-plane text-secondary"></i> Send Notification
+            </h2>
+
+            <form action="{{ url_for('admin.admin_send_message') }}" method="POST">
+                <div class="mb-3">
+                    <label for="target_student_id" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Recipient</label>
+                    <select id="target_student_id" name="student_id" class="form-select" required>
+                        <option value="" disabled selected>Select User</option>
+                        {% for usr in users_only %}
+                            <option value="{{ usr.id }}">{{ usr.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="subject" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Subject</label>
+                    <input type="text" id="subject" name="subject" class="form-control" placeholder="e.g. Interview Invitation" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="body" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Message Body</label>
+                    <textarea id="body" name="body" class="form-control" rows="3" placeholder="Enter message details..." required style="resize: vertical; min-height: 80px;"></textarea>
+                </div>
+
+                <button type="submit" class="btn w-100 py-2" style="background-color: var(--primary-light) !important; border: none !important; color: var(--primary) !important; font-weight: 600;">
+                    <i class="fa-regular fa-paper-plane me-2"></i> Send Notification
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fetchSyncStatus() {
+    fetch('/api/system/sync-status')
+        .then(res => res.json())
+        .then(data => {
+            // Update Jobs Status
+            const jobsLastEl = document.getElementById('adminJobsLast');
+            const jobsNextEl = document.getElementById('adminJobsNext');
+            const jobsCountEl = document.getElementById('adminJobsCount');
+            const jobsBadge = document.getElementById('adminJobsBadge');
+
+            if (data.lastJobResult) {
+                const result = data.lastJobResult;
+                if (result.startedAt) {
+                    const d = new Date(result.startedAt);
+                    jobsLastEl.textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ` (${result.status})`;
+                }
+                
+                if (result.status === 'SUCCESS') {
+                    jobsBadge.className = 'badge bg-success-subtle text-success';
+                    jobsBadge.textContent = 'Success';
+                } else if (result.status === 'FAILED') {
+                    jobsBadge.className = 'badge bg-danger-subtle text-danger';
+                    jobsBadge.textContent = 'Failed';
+                } else if (result.status === 'RUNNING') {
+                    jobsBadge.className = 'badge bg-warning-subtle text-warning';
+                    jobsBadge.textContent = 'Syncing';
+                } else {
+                    jobsBadge.className = 'badge bg-secondary-subtle text-secondary';
+                    jobsBadge.textContent = 'Idle';
+                }
+            }
+            if (data.nextJobsSyncTime) {
+                const nextD = new Date(data.nextJobsSyncTime);
+                jobsNextEl.textContent = nextD.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            } else {
+                jobsNextEl.textContent = 'Not Scheduled';
+            }
+            jobsCountEl.textContent = data.totalJobs;
+
+            // Update Internships Status
+            const internLastEl = document.getElementById('adminInternshipsLast');
+            const internNextEl = document.getElementById('adminInternshipsNext');
+            const internCountEl = document.getElementById('adminInternshipsCount');
+            const internBadge = document.getElementById('adminInternshipsBadge');
+
+            if (data.lastInternshipResult) {
+                const result = data.lastInternshipResult;
+                if (result.startedAt) {
+                    const d = new Date(result.startedAt);
+                    internLastEl.textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ` (${result.status})`;
+                }
+                
+                if (result.status === 'SUCCESS') {
+                    internBadge.className = 'badge bg-success-subtle text-success';
+                    internBadge.textContent = 'Success';
+                } else if (result.status === 'FAILED') {
+                    internBadge.className = 'badge bg-danger-subtle text-danger';
+                    internBadge.textContent = 'Failed';
+                } else if (result.status === 'RUNNING') {
+                    internBadge.className = 'badge bg-warning-subtle text-warning';
+                    internBadge.textContent = 'Syncing';
+                } else {
+                    internBadge.className = 'badge bg-secondary-subtle text-secondary';
+                    internBadge.textContent = 'Idle';
+                }
+            }
+            if (data.nextInternshipSyncTime) {
+                const nextD = new Date(data.nextInternshipSyncTime);
+                internNextEl.textContent = nextD.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            } else {
+                internNextEl.textContent = 'Not Scheduled';
+            }
+            internCountEl.textContent = data.totalInternships;
+        })
+        .catch(err => console.error('Error fetching sync status:', err));
+}
+
+function runManualSync(type) {
+    const btn = type === 'jobs' ? document.getElementById('triggerJobsBtn') : document.getElementById('triggerInternshipsBtn');
+    const icon = type === 'jobs' ? document.getElementById('jobsSyncIcon') : document.getElementById('internshipsSyncIcon');
+    const badge = type === 'jobs' ? document.getElementById('adminJobsBadge') : document.getElementById('adminInternshipsBadge');
+
+    btn.disabled = true;
+    if (icon) icon.classList.add('fa-spin');
+    if (badge) {
+        badge.className = 'badge bg-warning-subtle text-warning';
+        badge.textContent = 'Syncing';
+    }
+
+    fetch('/api/system/trigger-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ syncType: type })
+    })
+    .then(res => res.json())
+    .then(res => {
+        btn.disabled = false;
+        if (icon) icon.classList.remove('fa-spin');
+        fetchSyncStatus();
+        if (res.status === 'SUCCESS') {
+            showToast(`Manual ${type} sync successful! Added: ${res.added}, Updated: ${res.updated}, Removed: ${res.removed}`, 'success');
+        } else {
+            showToast(`Manual sync failed: ${res.error || 'Unknown error'}`, 'danger');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        if (icon) icon.classList.remove('fa-spin');
+        fetchSyncStatus();
+        showToast('Error triggering sync: ' + err.message, 'danger');
+    });
+}
+
+function showToast(msg, type) {
+    alert(msg);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchSyncStatus();
+    setInterval(fetchSyncStatus, 15000);
+});
+</script>
+{% endblock %}

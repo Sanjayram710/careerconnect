@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Join CareerConnect - Create Your Account{% endblock %}
+
+{% block auth_content %}
+<div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-5" style="background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 40%), #f8fafc;">
+    <div class="card border-0 p-4 p-md-5 w-100" style="max-width: 640px; box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.14), 0 0 0 1px rgba(99, 102, 241, 0.04) !important;">
+        <div class="text-center mb-4">
+            <div class="brand-logo mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.6rem; border-radius: 12px;">C</div>
+            <h1 class="h3 fw-bold text-dark mb-1">Create Your Career Profile</h1>
+            <p class="text-muted mb-0" style="font-size: 0.88rem;">Join CareerConnect — discover jobs, internships, and opportunities worldwide</p>
+        </div>
+
+        <form action="{{ url_for('auth.register') }}" method="POST">
+            <!-- Full Name -->
+            <div class="mb-3">
+                <label for="name" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Full Name</label>
+                <div class="position-relative">
+                    <input type="text" id="name" name="name" class="form-control" placeholder="e.g. John Doe" required autocomplete="name" style="padding-left: 2.5rem !important;">
+                    <i class="fa-regular fa-user text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                </div>
+            </div>
+
+            <!-- Email & Phone Row -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Email Address</label>
+                    <div class="position-relative">
+                        <input type="email" id="email" name="email" class="form-control" placeholder="you@email.com" required autocomplete="email" style="padding-left: 2.5rem !important;">
+                        <i class="fa-regular fa-envelope text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="phone" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Phone Number</label>
+                    <div class="position-relative">
+                        <input type="text" id="phone" name="phone" class="form-control" placeholder="+91 9876543210" required style="padding-left: 2.5rem !important;">
+                        <i class="fa-solid fa-phone text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+                <label for="location" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Location</label>
+                <div class="position-relative">
+                    <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Bangalore, India" style="padding-left: 2.5rem !important;">
+                    <i class="fa-solid fa-location-dot text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="mb-3">
+                <label for="skills" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Skills <span class="text-muted fw-normal">(comma-separated)</span></label>
+                <div class="position-relative">
+                    <input type="text" id="skills" name="skills" class="form-control" placeholder="Python, Flask, SQL, React" style="padding-left: 2.5rem !important;">
+                    <i class="fa-solid fa-code text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                </div>
+            </div>
+
+            <!-- Password Row -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <label for="password" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Password</label>
+                    <div class="position-relative">
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="new-password" style="padding-left: 2.5rem !important;">
+                        <i class="fa-solid fa-lock text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="confirm_password" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Confirm Password</label>
+                    <div class="position-relative">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••" required autocomplete="new-password" style="padding-left: 2.5rem !important;">
+                        <i class="fa-solid fa-lock text-muted position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2" id="registerBtn">
+                <i class="fa-solid fa-rocket me-2"></i> Create Account & Start Applying
+            </button>
+        </form>
+
+        <div class="text-center mt-4 text-muted" style="font-size: 0.88rem;">
+            Already have an account? <a href="{{ url_for('auth.login') }}" class="text-primary text-decoration-none fw-bold">Sign In here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Job Details{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card shadow-sm border-0 rounded-4 p-4">
+
+        <h2 class="fw-bold mb-3">
+            {{ job.role }}
+        </h2>
+
+        <h5 class="text-primary">
+            {{ job.company_name }}
+        </h5>
+
+        <p class="text-muted">
+            {{ job.location }}
+        </p>
+
+        <hr>
+
+        <h5>Description</h5>
+
+        <p>
+            {{ job.description }}
+        </p>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <span class="badge bg-success">
+                Active Hiring
+            </span>
+
+            <form action="{{ url_for('student.apply_job', job_id=job.id) }}" method="POST">
+
+                <button type="submit" class="btn btn-primary">
+                    Apply Now
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

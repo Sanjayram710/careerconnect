@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Office Announcement</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+            padding: 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 40px 30px;
+            line-height: 1.6;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+        .message-body {
+            background-color: #fafafa;
+            border: 1px solid #f1f5f9;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+            font-size: 15px;
+            color: #334155;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+        .btn {
+            display: inline-block;
+            background: #1e293b;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Placement Cell Announcement</h1>
+        </div>
+        <div class="content">
+            <p class="greeting">Hello {{ student.name }},</p>
+            <p>You have received an official broadcast announcement from the University Placement Cell Director:</p>
+            
+            <div class="message-body">
+                <h3 style="margin-top: 0; color: #0f172a; font-size: 16px;">{{ subject }}</h3>
+                <p style="margin-bottom: 0;">{{ body | safe }}</p>
+            </div>
+            
+            <p>Please log in to your placement account portal to check active schedules, reply to messages, or update your profile records accordingly.</p>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="http://localhost:8080/dashboard" class="btn">Log In to Portal</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This message was dispatched from the University Placement Cell broadcast administration service.</p>
+            <p>&copy; 2026 University Placement Cell. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

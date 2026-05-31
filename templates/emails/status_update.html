@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status Updated</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            padding: 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+        .status-box {
+            text-align: center;
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .Applied { background-color: #e0e7ff; color: #4338ca; }
+        .Shortlisted { background-color: #f3e8ff; color: #6b21a8; }
+        .Interviewing { background-color: #fef3c7; color: #92400e; }
+        .Offered { background-color: #d1fae5; color: #065f46; }
+        .Selected { background-color: #d1fae5; color: #065f46; }
+        .Rejected { background-color: #fee2e2; color: #991b1b; }
+        
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Application Update</h1>
+        </div>
+        <div class="content">
+            <p class="greeting">Hi {{ student.name }},</p>
+            <p>Your application status for the position of <strong>{{ job.role }}</strong> at <strong>{{ job.company_name }}</strong> has been updated by the recruitment coordinator.</p>
+            
+            <div class="status-box">
+                <span class="d-block" style="font-size: 13px; color: #64748b; margin-bottom: 8px;">NEW PIPELINE STAGE:</span>
+                <span class="status-badge {{ status }}">{{ status }}</span>
+            </div>
+            
+            <p>Please check your student dashboard for interview schedules, online test codes, or details regarding the next recruitment steps.</p>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="http://localhost:8080/applications" class="btn">Track Application Status</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is an automated email from the University CareerConnect.</p>
+            <p>&copy; 2026 University Placement Cell. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

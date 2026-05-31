@@ -1,0 +1,683 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1">Welcome back, {{ current_user.name }}! 👋</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Discover new opportunities, track your applications, and grow your career with CareerConnect.</p>
+    </div>
+</div>
+
+<!-- Onboarding & Platform Stats Row -->
+<div class="row g-3 mb-4">
+    <!-- Left: Profile Onboarding -->
+    <div class="col-lg-8">
+        <div class="card border-0 onboarding-card p-4 shadow-sm h-100">
+            <div class="row align-items-center g-4 h-100">
+                <!-- Completeness Score -->
+                <div class="col-md-5 border-end-md">
+                    <h5 class="fw-bold mb-1" style="font-size: 1.05rem; color: var(--text-primary);">
+                        <i class="fa-solid fa-rocket text-primary me-2"></i>Profile Onboarding
+                    </h5>
+                    <p class="text-muted small mb-3">Complete your professional profile to boost employer visibility and unlock smart job recommendations.</p>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="flex-grow-1" style="max-width: 180px;">
+                            <div class="progress" style="height: 10px; background-color: var(--border-color); border-radius: 99px; overflow: hidden;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ profile_completion }}%; background: var(--primary-gradient);" aria-valuenow="{{ profile_completion }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <span class="fw-bold text-primary" style="font-size: 1.1rem;">{{ profile_completion }}%</span>
+                    </div>
+                </div>
+
+                <!-- Checklist Items -->
+                <div class="col-md-7">
+                    {% if profile_completion == 100 %}
+                    <div class="text-center py-2">
+                        <span class="fs-2 mb-2 d-block">🎉</span>
+                        <h6 class="fw-bold text-success mb-1">Your Profile is Fully Complete!</h6>
+                        <p class="text-muted small mb-0">Excellent! You are now in the top tier of candidates. Keep exploring opportunities.</p>
+                    </div>
+                    {% else %}
+                    <div class="row g-2">
+                        <!-- Skills -->
+                        <div class="col-6">
+                            <div class="checklist-item d-flex align-items-center justify-content-between p-2 {% if current_user.skills %}completed{% endif %}">
+                                <span class="small fw-semibold text-secondary" style="font-size: 0.76rem;">
+                                    <i class="fa-solid {% if current_user.skills %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-1"></i>Skills Listed
+                                </span>
+                                {% if not current_user.skills %}
+                                <a href="{{ url_for('student.profile') }}" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style="font-size: 0.7rem; color: var(--primary);">Add</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- Resume -->
+                        <div class="col-6">
+                            <div class="checklist-item d-flex align-items-center justify-content-between p-2 {% if current_user.resume_filename or current_user.resume_link %}completed{% endif %}">
+                                <span class="small fw-semibold text-secondary" style="font-size: 0.76rem;">
+                                    <i class="fa-solid {% if current_user.resume_filename or current_user.resume_link %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-1"></i>Resume Uploaded
+                                </span>
+                                {% if not current_user.resume_filename and not current_user.resume_link %}
+                                <a href="{{ url_for('student.profile') }}" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style="font-size: 0.7rem; color: var(--primary);">Upload</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- LinkedIn -->
+                        <div class="col-6">
+                            <div class="checklist-item d-flex align-items-center justify-content-between p-2 {% if current_user.linkedin_connected or current_user.linkedin_url %}completed{% endif %}">
+                                <span class="small fw-semibold text-secondary" style="font-size: 0.76rem;">
+                                    <i class="fa-solid {% if current_user.linkedin_connected or current_user.linkedin_url %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-1"></i>LinkedIn
+                                </span>
+                                {% if not current_user.linkedin_connected and not current_user.linkedin_url %}
+                                <a href="{{ url_for('student.profile') }}" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style="font-size: 0.7rem; color: var(--primary);">Link</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- Contact Info -->
+                        <div class="col-6">
+                            <div class="checklist-item d-flex align-items-center justify-content-between p-2 {% if current_user.phone %}completed{% endif %}">
+                                <span class="small fw-semibold text-secondary" style="font-size: 0.76rem;">
+                                    <i class="fa-solid {% if current_user.phone %}fa-circle-check text-success{% else %}fa-circle-xmark text-muted{% endif %} me-1"></i>Contact Phone
+                                </span>
+                                {% if not current_user.phone %}
+                                <a href="{{ url_for('student.profile') }}" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style="font-size: 0.7rem; color: var(--primary);">Add</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right: General Platform Stats -->
+    <div class="col-lg-4 d-flex flex-column gap-3">
+        <!-- Open Positions -->
+        <div class="metric-card flex-grow-1 py-3 px-4">
+            <div class="metric-icon-box success" style="width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+                <span class="d-block fs-4 fw-bold text-dark mb-0 leading-none">{{ active_jobs_count }}</span>
+                <span class="text-muted" style="font-size: 0.75rem; font-weight: 600;">Open Positions</span>
+            </div>
+        </div>
+        <!-- Unread Messages -->
+        <div class="metric-card flex-grow-1 py-3 px-4">
+            <div class="metric-icon-box primary" style="width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+                <i class="fa-solid fa-envelope-open-text"></i>
+            </div>
+            <div>
+                <span class="d-block fs-4 fw-bold text-dark mb-0 leading-none">{{ unread_messages_count }}</span>
+                <span class="text-muted" style="font-size: 0.75rem; font-weight: 600;">Unread Messages</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Timeline Summary Row (Requirement 8) -->
+<div class="row g-3 mb-4">
+    <!-- Total Upcoming Events -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-applied h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px; border-left: 3px solid var(--primary) !important;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box primary" style="background: rgba(99, 102, 241, 0.08); color: var(--primary); width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none" data-count="{{ total_upcoming_count }}">{{ total_upcoming_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Upcoming Events</span>
+                </div>
+            </div>
+            <a href="{{ url_for('student.calendar_view') }}" class="text-decoration-none fw-semibold small mt-auto text-primary" style="font-size:0.72rem;">
+                Open calendar →
+            </a>
+        </div>
+    </div>
+
+    <!-- Deadlines This Week -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-rejected h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px; border-left: 3px solid var(--danger) !important;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box danger" style="background: rgba(239, 68, 68, 0.08); color: var(--danger); width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none" data-count="{{ deadlines_this_week_count }}">{{ deadlines_this_week_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Deadlines This Week</span>
+                </div>
+            </div>
+            <span class="text-muted small mt-auto" style="font-size: 0.68rem; font-weight: 500;">
+                Next 7 days
+            </span>
+        </div>
+    </div>
+
+    <!-- Interviews Scheduled -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-interviewing h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px; border-left: 3px solid var(--warning) !important;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box warning" style="background: rgba(245, 158, 11, 0.08); color: var(--warning); width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none" data-count="{{ interviews_scheduled_count }}">{{ interviews_scheduled_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Interviews Scheduled</span>
+                </div>
+            </div>
+            <a href="{{ url_for('student.calendar_view') }}" class="text-decoration-none fw-semibold small mt-auto text-warning" style="font-size:0.72rem;">
+                Check dates →
+            </a>
+        </div>
+    </div>
+
+    <!-- Assessments Scheduled -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-shortlisted h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px; border-left: 3px solid var(--info) !important;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box info" style="background: rgba(14, 165, 233, 0.08); color: var(--info); width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px;">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none" data-count="{{ assessments_scheduled_count }}">{{ assessments_scheduled_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Assessments Scheduled</span>
+                </div>
+            </div>
+            <span class="text-muted small mt-auto" style="font-size: 0.68rem; font-weight: 500;">
+                Preparation active
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Application Stats Row (4-Card Color-Coded Layout) -->
+<div class="row g-3 mb-4">
+    <!-- Jobs Applied -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-applied h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none">{{ total_applied }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Jobs Applied</span>
+                </div>
+            </div>
+            {% if total_applied == 0 %}
+            <a href="{{ url_for('student.jobs_list') }}" class="text-decoration-none fw-bold small mt-auto text-primary" style="font-size:0.75rem;">
+                Start exploring <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('student.my_applications') }}" class="text-decoration-none fw-semibold small mt-auto text-primary" style="font-size:0.72rem;">
+                View applications →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Shortlisted -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-shortlisted h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none">{{ shortlisted_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Shortlisted</span>
+                </div>
+            </div>
+            {% if shortlisted_count == 0 %}
+            <a href="{{ url_for('student.profile') }}" class="text-decoration-none fw-bold small mt-auto text-warning" style="font-size:0.75rem;">
+                Optimize profile <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('student.my_applications') }}" class="text-decoration-none fw-semibold small mt-auto text-warning" style="font-size:0.72rem;">
+                View details →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Interviewing -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-interviewing h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none">{{ interviewing_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Interviewing</span>
+                </div>
+            </div>
+            {% if interviewing_count == 0 %}
+            <a href="{{ url_for('student.jobs_list') }}" class="text-decoration-none fw-bold small mt-auto text-success" style="font-size:0.75rem;">
+                Explore jobs <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('student.my_applications') }}" class="text-decoration-none fw-semibold small mt-auto text-success" style="font-size:0.72rem;">
+                Check schedule →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Offers Received -->
+    <div class="col-md-3 col-sm-6">
+        <div class="metric-card status-offers h-100 d-flex flex-column align-items-start justify-content-between p-3" style="min-height: 120px;">
+            <div class="d-flex align-items-center gap-3 w-100 mb-2">
+                <div class="metric-icon-box">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div>
+                    <span class="d-block fs-3 fw-bold text-dark mb-0 leading-none">{{ offers_count }}</span>
+                    <span class="text-muted" style="font-size: 0.76rem; font-weight: 600;">Offers Received</span>
+                </div>
+            </div>
+            {% if offers_count == 0 %}
+            <a href="{{ url_for('student.jobs_list') }}" class="text-decoration-none fw-bold small mt-auto" style="font-size:0.75rem; color: #b45309;">
+                Keep applying <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('student.my_applications') }}" class="text-decoration-none fw-semibold small mt-auto" style="font-size:0.72rem; color: #b45309;">
+                View offers →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Grid -->
+<div class="row g-4">
+
+    <!-- Left: Top Matched Jobs -->
+    <div class="col-lg-8">
+        <div class="card border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-wand-magic-sparkles me-2" style="color: var(--primary);"></i>Jobs For You
+                </h2>
+                <a href="{{ url_for('student.jobs_list') }}" class="text-primary fw-bold text-decoration-none small">
+                    Explore All <i class="fa-solid fa-arrow-right ms-1" style="font-size:0.7rem;"></i>
+                </a>
+            </div>
+
+            {% if live_jobs %}
+            <div class="d-flex flex-column gap-3">
+                {% for job in live_jobs[:5] %}
+                <div class="p-3 rounded-3 d-flex align-items-center gap-3"
+                     style="background: var(--bg-canvas); border: 1px solid var(--border-color); transition: var(--transition);"
+                     onmouseover="this.style.borderColor='rgba(99,102,241,0.3)'; this.style.background='#fff';"
+                     onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-canvas)';">
+                    <!-- Company Logo -->
+                    <div class="d-flex align-items-center justify-content-center rounded-2 fw-bold flex-shrink-0"
+                         style="width: 42px; height: 42px; font-size: 1rem; color: #fff; background: var(--primary-gradient);">
+                        {{ job.company[0] | upper if job.company else '?' }}
+                    </div>
+                    <!-- Info -->
+                    <div class="flex-grow-1" style="min-width: 0;">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="fw-bold text-truncate" style="font-size: 0.88rem; color: var(--text-primary);">{{ job.title }}</span>
+                            <span class="badge text-bg-light border text-muted px-2 py-0.5" style="font-size: 0.65rem;">{{ job.job_type or 'Full-Time' }}</span>
+                        </div>
+                        <div class="text-muted text-truncate d-flex align-items-center gap-2" style="font-size: 0.74rem;">
+                            <span>{{ job.company }}</span>
+                            <span>·</span>
+                            <span>{{ job.location }}</span>
+                            <span>·</span>
+                            <span class="text-secondary fw-semibold"><i class="fa-solid fa-briefcase text-info me-1" style="font-size: 0.68rem;"></i>{{ job.experience_required or 'Any Exp' }}</span>
+                        </div>
+                    </div>
+                    <!-- Salary, Bookmark & Quick View -->
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        {% if job.salary_min and job.salary_max %}
+                        <span class="fw-semibold d-none d-md-inline me-1" style="font-size: 0.8rem; color: var(--success);">
+                            ₹{{ (job.salary_min / 100000) | round(1) }}L–{{ (job.salary_max / 100000) | round(1) }}L
+                        </span>
+                        {% endif %}
+                        
+                        <!-- Bookmark Toggle Form -->
+                        <form action="{{ url_for('student.save_job', job_id=job.id) }}" method="POST" style="margin:0;">
+                            <button type="submit" class="btn-bookmark-action {% if job.id in saved_job_ids %}bookmarked{% endif %}" title="{% if job.id in saved_job_ids %}Unsave{% else %}Save Job{% endif %}">
+                                <i class="fa-{% if job.id in saved_job_ids %}solid{% else %}regular{% endif %} fa-heart fs-5"></i>
+                            </button>
+                        </form>
+                        
+                        <!-- Details (Modal Trigger) -->
+                        <button type="button" class="btn btn-primary btn-sm px-3 fw-semibold"
+                                onclick="openDashboardQuickView({
+                                    id: '{{ job.id }}',
+                                    title: '{{ job.title | replace("\'", "\\\'") }}',
+                                    company: '{{ job.company | replace("\'", "\\\'") }}',
+                                    location: '{{ job.location or "Remote" | replace("\'", "\\\'") }}',
+                                    salary: '{% if job.salary_min and job.salary_max %}₹{{ (job.salary_min/100000)|round(1) }}L–{{ (job.salary_max/100000)|round(1) }}L{% else %}TBD{% endif %}',
+                                    type: '{{ job.job_type or "Full-Time" }}',
+                                    exp: '{{ job.experience_required or "Any" }}',
+                                    link: '{{ job.apply_link }}',
+                                    desc: '{{ job.description | replace("\n", " ") | replace("\r", "") | replace("\'", "\\\'") | truncate(250) if job.description else "No description available." }}',
+                                    saved: {{ 'true' if job.id in saved_job_ids else 'false' }}
+                                })">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="fa-solid fa-briefcase fs-3 mb-2" style="color: var(--text-light);"></i>
+                <p class="small mb-0">No live jobs available right now.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: Applications Panel & Onboarding Guide -->
+    <div class="col-lg-4 d-flex flex-column gap-4">
+        <div class="card border-0 p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 fw-bold text-dark mb-0">My Applications</h2>
+                <a href="{{ url_for('student.my_applications') }}" class="text-primary fw-bold text-decoration-none small">View All</a>
+            </div>
+
+            {% if applications %}
+            <div class="d-flex flex-column gap-3">
+                {% for app in applications[:3] %}
+                <div class="p-3 rounded-3" style="background-color: var(--bg-canvas); border: 1px solid var(--border-color);">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div style="overflow: hidden; max-width: 60%;">
+                            <h4 class="fw-bold text-dark mb-0" style="font-size: 0.88rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">{{ app.job.role }}</h4>
+                            <span class="text-muted" style="font-size: 0.78rem;">{{ app.job.company_name }}</span>
+                        </div>
+                        {% if app.status == 'Applied' %}
+                            <span class="status-badge badge-applied" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">Applied</span>
+                        {% elif app.status == 'Shortlisted' %}
+                            <span class="status-badge badge-shortlisted" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">Shortlisted</span>
+                        {% elif app.status == 'Interviewing' %}
+                            <span class="status-badge badge-interviewing" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">Interviewing</span>
+                        {% elif app.status in ['Offered', 'Selected'] %}
+                            <span class="status-badge badge-offered" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">Offered</span>
+                        {% elif app.status == 'Rejected' %}
+                            <span class="status-badge badge-rejected" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">Rejected</span>
+                        {% else %}
+                            <span class="status-badge badge-underreview" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">Under Review</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-muted d-block mt-2" style="font-size: 0.72rem;">
+                        <i class="fa-regular fa-clock me-1"></i>Applied {{ app.applied_at.strftime('%d %b %Y') }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Getting-Started guide when empty -->
+            <div class="py-2">
+                <h6 class="fw-bold text-muted small text-uppercase mb-3" style="letter-spacing:0.5px;">Getting Started</h6>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 text-white bg-primary fw-bold" style="width:24px; height:24px; font-size:0.75rem;">1</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="font-size:0.82rem; color:var(--text-primary);">Complete Profile & Resume</h6>
+                            <p class="text-muted small mb-1" style="font-size: 0.75rem;">Add your skills and upload a PDF resume for employers.</p>
+                            <a href="{{ url_for('student.profile') }}" class="text-primary fw-bold text-decoration-none small" style="font-size:0.72rem;">Go to Profile →</a>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 text-white bg-secondary fw-bold" style="width:24px; height:24px; font-size:0.75rem;">2</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="font-size:0.82rem; color:var(--text-primary);">Browse Job Openings</h6>
+                            <p class="text-muted small mb-1" style="font-size: 0.75rem;">Explore curated roles customized to your profile.</p>
+                            <a href="{{ url_for('student.jobs_list') }}" class="text-secondary fw-bold text-decoration-none small" style="font-size:0.72rem;">Search Jobs →</a>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 text-white bg-success fw-bold" style="width:24px; height:24px; font-size:0.75rem;">3</div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="font-size:0.82rem; color:var(--text-primary);">Apply and Track</h6>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Submit application details and monitor status updates here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Calendar events + Activity Feed + Recently Viewed -->
+<div class="row g-4 mt-1">
+    <!-- Left: Schedule & Activity Column -->
+    <div class="col-lg-8">
+        <div class="row g-4">
+            <!-- Recently Viewed Jobs -->
+            <div class="col-md-6">
+                <div class="card border-0 p-4 h-100">
+                    <h2 class="h5 fw-bold text-dark mb-3">
+                        <i class="fa-regular fa-clock text-primary me-2"></i>Recently Viewed
+                    </h2>
+                    <div id="dashboardRecentJobs" class="d-flex flex-column gap-3">
+                        <!-- Loaded via JS -->
+                        <div class="text-center py-4 text-muted">
+                            <p class="small mb-0">No recently viewed jobs yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Log -->
+            <div class="col-md-6">
+                <div class="card border-0 p-4 h-100">
+                    <h2 class="h5 fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-list-ul text-primary me-2"></i>Recent Activity
+                    </h2>
+                    <div class="d-flex flex-column gap-3">
+                        {% if applications %}
+                            {% for app in applications[:3] %}
+                            <div class="d-flex gap-3 align-items-start pb-2" style="border-bottom: 1px dashed var(--border-color); &:last-child { border-bottom: none; }">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 text-white" 
+                                     style="width: 32px; height: 32px; font-size: 0.8rem; background: {% if app.status == 'Applied' %}var(--info-gradient){% elif app.status == 'Shortlisted' or app.status == 'Interviewing' %}var(--warning-gradient){% else %}var(--success-gradient){% endif %};">
+                                    <i class="fa-solid {% if app.status == 'Applied' %}fa-paper-plane{% elif app.status == 'Shortlisted' %}fa-list-check{% elif app.status == 'Interviewing' %}fa-comments{% else %}fa-trophy{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block fw-bold text-dark" style="font-size: 0.82rem;">{{ app.status }}</span>
+                                    <span class="text-muted d-block" style="font-size: 0.74rem;">Submitted application to {{ app.job.company_name }} for {{ app.job.role }} on {{ app.applied_at.strftime('%d %b') }}.</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="d-flex gap-3 align-items-start">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 text-white bg-primary" style="width: 32px; height: 32px;">
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block fw-bold text-dark" style="font-size: 0.82rem;">Account Created</span>
+                                    <span class="text-muted" style="font-size: 0.74rem;">Welcome to CareerConnect! Update your profile to get started.</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right: Calendar Widgets -->
+    <div class="col-lg-4">
+        <div class="card border-0 p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 fw-bold text-dark mb-0">
+                    <i class="fa-regular fa-calendar-days text-primary me-2"></i>Upcoming Events
+                </h2>
+                <a href="{{ url_for('student.calendar_view') }}" class="text-primary fw-bold text-decoration-none small">View Full</a>
+            </div>
+            
+            <div class="d-flex flex-column gap-2">
+                {% if upcoming_events %}
+                    {% for event in upcoming_events %}
+                    <div class="upcoming-event-item event-{{ event.color }}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark" style="font-size: 0.82rem;">{{ event.company }}</span>
+                            <span class="badge" style="font-size:0.65rem; background: var(--bg-canvas); color: var(--text-secondary); border: 1px solid var(--border-color);">{{ event.date_str }}</span>
+                        </div>
+                        <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                            {{ event.title }}
+                            <span class="badge bg-secondary-subtle text-secondary small py-0.5 ms-1" style="font-size: 0.58rem; text-transform: capitalize;">{{ event.event_type }}</span>
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-regular fa-calendar-alt fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0" style="font-size: 0.75rem; line-height: 1.5;">No upcoming events. Save or apply to jobs and internships to automatically track deadlines.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Job Quick-View Modal -->
+<div class="modal fade" id="jobQuickViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--radius-lg); overflow: hidden;">
+            <div class="modal-header border-0 text-white" style="background: var(--primary-gradient); padding: 1.25rem 1.5rem;">
+                <div class="d-flex align-items-center gap-3">
+                    <div id="qvLogo" class="d-flex align-items-center justify-content-center rounded-2 fw-bold" style="width: 42px; height: 42px; font-size: 1.1rem; color: var(--primary); background: #fff;"></div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="qvTitle" style="font-size:1.05rem;"></h5>
+                        <span id="qvCompany" style="font-size:0.8rem; opacity:0.9;"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="job-meta-pill">
+                        <i class="fa-solid fa-location-dot text-danger me-1"></i><span id="qvLocation"></span>
+                    </span>
+                    <span class="job-meta-pill">
+                        <i class="fa-solid fa-briefcase text-primary me-1"></i><span id="qvType"></span>
+                    </span>
+                    <span class="job-meta-pill">
+                        <i class="fa-solid fa-layer-group text-info me-1"></i><span id="qvExperience"></span>
+                    </span>
+                    <span class="job-meta-pill text-success fw-semibold">
+                        <i class="fa-solid fa-indian-rupee-sign me-1"></i><span id="qvSalary"></span>
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark mb-2" style="font-size:0.85rem;">Job Details & Requirements</h6>
+                <p class="text-muted" id="qvDescription" style="font-size: 0.8rem; line-height: 1.6; max-height: 200px; overflow-y: auto; padding-right: 5px;"></p>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-between">
+                <form id="qvSaveForm" method="POST" action="" style="margin:0;">
+                    <button type="submit" class="btn btn-outline-primary btn-sm px-3 fw-semibold">
+                        <i id="qvSaveIcon" class="fa-regular fa-bookmark me-1"></i><span id="qvSaveText">Save</span>
+                    </button>
+                </form>
+                <a id="qvApplyBtn" href="" target="_blank" class="btn btn-primary btn-sm px-4 fw-semibold">
+                    <i class="fa-solid fa-bolt me-1" style="font-size:0.7rem;"></i>Apply Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Open Quick View Modal from Dashboard
+    function openDashboardQuickView(job) {
+        document.getElementById('qvTitle').textContent = job.title;
+        document.getElementById('qvCompany').textContent = job.company;
+        document.getElementById('qvLogo').textContent = job.company.charAt(0).toUpperCase();
+        
+        document.getElementById('qvLocation').textContent = job.location;
+        document.getElementById('qvType').textContent = job.type;
+        document.getElementById('qvExperience').textContent = job.exp;
+        document.getElementById('qvSalary').textContent = job.salary;
+        document.getElementById('qvDescription').textContent = job.desc;
+        
+        // Save form settings
+        const saveForm = document.getElementById('qvSaveForm');
+        saveForm.action = `/save-job/${job.id}`;
+        
+        const saveIcon = document.getElementById('qvSaveIcon');
+        const saveText = document.getElementById('qvSaveText');
+        if (job.saved) {
+            saveIcon.className = "fa-solid fa-bookmark me-1";
+            saveText.textContent = "Saved";
+        } else {
+            saveIcon.className = "fa-regular fa-bookmark me-1";
+            saveText.textContent = "Save";
+        }
+        
+        // Apply button settings
+        document.getElementById('qvApplyBtn').href = job.link;
+        
+        // Record as recently viewed
+        trackDashboardRecentView(job.id, job.title, job.company);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('jobQuickViewModal'));
+        modal.show();
+    }
+    
+    // Tracking local views
+    function trackDashboardRecentView(id, title, company) {
+        let views = JSON.parse(localStorage.getItem('ccRecentJobs') || '[]');
+        views = views.filter(j => j.id != id);
+        views.unshift({ id, title, company, ts: Date.now() });
+        localStorage.setItem('ccRecentJobs', JSON.stringify(views.slice(0, 8)));
+        renderDashboardRecentlyViewed();
+    }
+    
+    // Render Recently Viewed on Dashboard
+    function renderDashboardRecentlyViewed() {
+        const views = JSON.parse(localStorage.getItem('ccRecentJobs') || '[]');
+        const container = document.getElementById('dashboardRecentJobs');
+        if (!container) return;
+        
+        if (views.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <p class="small mb-0">No recently viewed jobs yet.</p>
+                </div>`;
+            return;
+        }
+        
+        const gradients = [
+            'linear-gradient(135deg,#6366f1,#8b5cf6)',
+            'linear-gradient(135deg,#0ea5e9,#6366f1)',
+            'linear-gradient(135deg,#10b981,#0ea5e9)',
+            'linear-gradient(135deg,#f59e0b,#ef4444)'
+        ];
+        
+        container.innerHTML = views.slice(0, 3).map((j, i) => {
+            const mins = Math.max(0, Math.round((Date.now() - j.ts) / 60000));
+            const timeStr = mins < 1 ? 'Just now' : mins < 60 ? mins + 'm ago' : Math.round(mins/60) + 'h ago';
+            return `
+            <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                <div class="d-flex align-items-center gap-3" style="min-width:0;">
+                    <div class="d-flex align-items-center justify-content-center rounded-2 fw-bold text-white flex-shrink-0" style="width: 36px; height: 36px; font-size: 0.9rem; background:${gradients[i % gradients.length]};">
+                        ${(j.company?.[0] || '?').toUpperCase()}
+                    </div>
+                    <div style="min-width:0;">
+                        <div class="fw-bold text-truncate" style="font-size:0.82rem; color: var(--text-primary);">${j.title}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.72rem;">${j.company} · <i class="fa-regular fa-clock me-1"></i>${timeStr}</div>
+                    </div>
+                </div>
+                <a href="/explore-jobs" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size:0.7rem;">
+                    Find
+                </a>
+            </div>`;
+        }).join('');
+    }
+    
+    document.addEventListener('DOMContentLoaded', renderDashboardRecentlyViewed);
+</script>
+{% endblock %}

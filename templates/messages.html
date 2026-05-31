@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Messages Inbox - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1">Placement Inbox 📥</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Access application confirmations, shortlist updates, system alerts, and direct notifications.</p>
+    </div>
+</div>
+
+<div class="card border-0 overflow-hidden">
+    <div class="row g-0">
+        <!-- Left Panel: Messages Scrollable List -->
+        <div class="col-md-5 message-list-panel">
+            <div class="p-3 border-bottom bg-light fw-bold text-dark d-flex justify-content-between align-items-center" style="border-color: var(--border-color) !important;">
+                <span>All Notifications</span>
+                <span class="badge bg-primary text-white" style="font-size: 0.72rem;">{{ messages|length }} Logs</span>
+            </div>
+
+            {% if messages %}
+                <div class="list-group list-group-flush">
+                    {% for msg in messages %}
+                        <a href="{{ url_for('student.messages_inbox', active_msg=msg.id) }}" class="list-group-item list-group-item-action message-item border-0 {% if selected_msg and selected_msg.id == msg.id %}active{% endif %} {% if not msg.is_read %}unread{% endif %}">
+                            <div class="d-flex w-100 justify-content-between align-items-start mb-1">
+                                <span class="fw-bold truncate text-dark" style="font-size: 0.88rem; max-width: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ msg.subject }}</span>
+                                <small class="text-muted" style="font-size: 0.7rem;">{{ msg.sent_at.strftime('%d %b') }}</small>
+                            </div>
+                            <p class="text-muted mb-1 text-truncate" style="font-size: 0.78rem; max-height: 38px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal;">
+                                {{ msg.body }}
+                            </p>
+                            <span class="text-light" style="font-size: 0.7rem;"><i class="fa-regular fa-user-circle me-1"></i> Placement Office</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-envelope-open-text fs-2 mb-2 text-light"></i>
+                    <p class="small mb-0">Inbox is empty.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Panel: Message Content Viewer -->
+        <div class="col-md-7 message-content-panel bg-white">
+            {% if selected_msg %}
+                <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4" style="border-color: var(--border-color) !important;">
+                    <div>
+                        <h2 class="h5 fw-bold text-dark mb-1">{{ selected_msg.subject }}</h2>
+                        <span class="text-primary fw-semibold small d-block"><i class="fa-regular fa-envelope me-1"></i> From: Placement Office &lt;admin@placement.edu&gt;</span>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small d-block"><i class="fa-regular fa-clock me-1"></i> Sent On</span>
+                        <span class="text-dark fw-bold small">{{ selected_msg.sent_at.strftime('%d %b %Y, %I:%M %p') }}</span>
+                    </div>
+                </div>
+
+                <!-- Simulated Email Envelope body styling -->
+                <div class="p-4 rounded-3 border bg-light" style="border-color: var(--border-color) !important; font-family: 'Inter', sans-serif;">
+                    <div class="bg-white p-4 rounded-3 shadow-sm border" style="border-color: var(--border-color) !important;">
+                        <!-- Header banner -->
+                        <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom" style="border-color: #f1f5f9 !important;">
+                            <div class="brand-logo" style="width: 32px; height: 32px; font-size: 1.15rem; border-radius: 8px;">P</div>
+                            <span class="fw-bold text-dark" style="font-size: 0.95rem; font-family: 'Poppins', sans-serif;">CareerConnect Notification</span>
+                        </div>
+
+                        <!-- Email Body content pre-formatted -->
+                        <div class="text-secondary" style="font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">{{ selected_msg.body }}</div>
+                        
+                        <!-- Footer banner -->
+                        <div class="mt-4 pt-3 border-top text-muted small" style="border-color: #f1f5f9 !important; font-size: 0.75rem;">
+                            This is an automated system dispatch from the University CareerConnect Cell. For general queries, please contact helpdesk@placement.edu.
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="h-100 d-flex flex-column justify-content-center align-items-center text-muted text-center py-5">
+                    <i class="fa-solid fa-inbox fs-1 mb-3 text-light" style="font-size: 3.5rem;"></i>
+                    <h3 class="h6 fw-bold text-dark mb-1">No Notification Selected</h3>
+                    <p class="small">Choose an item from the inbox pane to display full transmission logs.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

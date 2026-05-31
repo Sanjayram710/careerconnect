@@ -1,0 +1,1160 @@
+{% extends "base.html" %}
+
+{% block title %}Placement Calendar — CareerConnect{% endblock %}
+
+{% block head %}
+<style>
+/* ============================================================
+   CALENDAR PAGE — PREMIUM DESIGN SYSTEM
+   ============================================================ */
+
+/* ---- Hero Header ---- */
+.cal-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #a855f7 100%);
+    border-radius: var(--radius-xl);
+    padding: 2rem 2.5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+}
+.cal-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    pointer-events: none;
+}
+.cal-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    pointer-events: none;
+}
+.cal-hero h1 { font-size: 1.65rem; font-weight: 800; margin-bottom: .35rem; color: #fff; }
+.cal-hero p  { font-size: .88rem; opacity: .88; margin: 0; color: rgba(255,255,255,.9); }
+
+/* hero stat chips */
+.hero-stat-chips {
+    display: flex; flex-wrap: wrap; gap: .75rem;
+    margin-top: 1.5rem;
+}
+.hero-stat-chip {
+    display: inline-flex; align-items: center; gap: .6rem;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 99px;
+    padding: .45rem 1rem;
+    font-size: .78rem; font-weight: 600;
+    color: #fff;
+    transition: var(--transition);
+}
+.hero-stat-chip:hover {
+    background: rgba(255,255,255,0.22);
+    transform: translateY(-1px);
+}
+.hero-stat-chip .chip-num {
+    font-size: 1rem; font-weight: 800; line-height: 1;
+}
+
+/* ---- Filter bar ---- */
+.cal-filter-bar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: .9rem 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .85rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+.filter-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
+.fpill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: .42rem .95rem;
+    border-radius: 99px; font-size: .76rem; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border-color);
+    background: var(--bg-canvas); color: var(--text-secondary);
+    transition: var(--transition); user-select: none;
+}
+.fpill:hover { border-color: var(--border-color-hover); transform: translateY(-1px); }
+.fpill.active[data-type="jobs"]        { background: rgba(99,102,241,.1);  color: var(--primary);   border-color: rgba(99,102,241,.3); }
+.fpill.active[data-type="internships"] { background: rgba(168,85,247,.1);  color: var(--secondary); border-color: rgba(168,85,247,.3); }
+.fpill.active[data-type="assessments"] { background: rgba(14,165,233,.1);  color: var(--info);      border-color: rgba(14,165,233,.3); }
+.fpill.active[data-type="interviews"]  { background: rgba(245,158,11,.1);  color: var(--warning);   border-color: rgba(245,158,11,.3); }
+.fpill.active[data-type="deadlines"]   { background: rgba(239,68,68,.1);   color: var(--danger);    border-color: rgba(239,68,68,.3);  }
+
+/* ---- Calendar card shell ---- */
+.cal-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    position: relative;
+}
+
+/* ---- Calendar navigation header ---- */
+.cal-nav-header {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: .85rem;
+    background: #fff;
+}
+.cal-month-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem; font-weight: 800;
+    color: var(--text-primary); margin: 0;
+}
+.cal-nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--border-color);
+    background: #fff; color: var(--text-secondary);
+    cursor: pointer; transition: var(--transition); font-size: .8rem;
+}
+.cal-nav-btn:hover {
+    background: var(--primary-light); color: var(--primary);
+    border-color: rgba(99,102,241,.3); transform: translateY(-1px);
+}
+.cal-view-toggle {
+    display: flex; background: var(--bg-canvas);
+    border: 1.5px solid var(--border-color); border-radius: 99px; padding: 2px;
+}
+.vtbtn {
+    padding: .35rem 1rem; border-radius: 99px;
+    font-size: .78rem; font-weight: 600;
+    color: var(--text-muted); border: none;
+    background: transparent; cursor: pointer; transition: var(--transition);
+}
+.vtbtn.active {
+    background: #fff; color: var(--primary);
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+/* ---- Month Grid ---- */
+.month-grid {
+    display: grid; grid-template-columns: repeat(7,1fr);
+}
+.grid-hdr {
+    padding: .65rem .4rem; text-align: center;
+    font-weight: 700; font-size: .7rem;
+    text-transform: uppercase; color: var(--text-muted);
+    letter-spacing: .6px;
+    background: var(--bg-canvas);
+    border-bottom: 1.5px solid var(--border-color);
+}
+.day-cell {
+    min-height: 118px; padding: .45rem .4rem;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex; flex-direction: column; gap: .35rem;
+    background: #fff; transition: background .15s;
+    position: relative; cursor: pointer;
+}
+.day-cell:nth-child(7n) { border-right: none; }
+.day-cell:hover { background: var(--bg-canvas); }
+.day-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .79rem; font-weight: 600; color: var(--text-secondary);
+    flex-shrink: 0;
+}
+.day-cell.is-today .day-num {
+    background: var(--primary-gradient); color: #fff;
+    box-shadow: 0 2px 8px rgba(99,102,241,.35);
+}
+.day-cell.is-today { background: rgba(99,102,241,.02); box-shadow: inset 0 0 0 1.5px rgba(99,102,241,.15); }
+.day-cell.dim { background: #fafbfc; }
+.day-cell.dim .day-num { color: var(--text-light); }
+
+/* ---- Week Grid ---- */
+.week-grid {
+    display: grid; grid-template-columns: repeat(7,1fr);
+    min-height: 440px;
+}
+.week-col {
+    border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column;
+    background: #fff;
+}
+.week-col:last-child { border-right: none; }
+.week-col.is-today { background: rgba(99,102,241,.02); box-shadow: inset 0 0 0 1.5px rgba(99,102,241,.15); }
+.week-day-hdr {
+    padding: .9rem .4rem; text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-canvas);
+    display: flex; flex-direction: column; align-items: center; gap: .2rem;
+}
+.week-day-name { font-size: .65rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: .5px; }
+.week-day-num {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .88rem; font-weight: 700; color: var(--text-primary);
+}
+.week-col.is-today .week-day-num {
+    background: var(--primary-gradient); color: #fff;
+    box-shadow: 0 2px 8px rgba(99,102,241,.35);
+}
+.week-events { padding: .65rem .5rem; display: flex; flex-direction: column; gap: .55rem; flex-grow: 1; overflow-y: auto; }
+
+/* ---- Event Badges (month) ---- */
+.ev-badge {
+    font-size: .67rem; font-weight: 600;
+    padding: .25rem .48rem; border-radius: 6px;
+    cursor: pointer; display: flex; align-items: center; gap: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border: 1px solid transparent;
+    transition: var(--transition-fast);
+}
+.ev-badge:hover { transform: scale(1.03); box-shadow: 0 2px 6px rgba(0,0,0,.07); }
+.ev-deadline   { background: rgba(239,68,68,.09);   color: #dc2626; border-color: rgba(239,68,68,.2); }
+.ev-assessment { background: rgba(14,165,233,.09);  color: #0284c7; border-color: rgba(14,165,233,.2); }
+.ev-interview  { background: rgba(245,158,11,.09);  color: #d97706; border-color: rgba(245,158,11,.2); }
+.ev-drive      { background: rgba(16,185,129,.09);  color: #059669; border-color: rgba(16,185,129,.2); }
+.ev-offer      { background: rgba(168,85,247,.09);  color: #9333ea; border-color: rgba(168,85,247,.2); }
+.ev-campus     { background: rgba(99,102,241,.09);  color: var(--primary); border-color: rgba(99,102,241,.2); }
+
+/* ---- Week event cards ---- */
+.week-ev-card {
+    padding: .6rem .75rem; border-radius: 8px;
+    cursor: pointer; display: flex; flex-direction: column; gap: .15rem;
+    border-left: 3px solid var(--primary);
+    background: var(--bg-canvas);
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    transition: var(--transition-fast);
+}
+.week-ev-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.week-ev-card.wc-deadline   { border-left-color: #ef4444; background: rgba(239,68,68,.03); }
+.week-ev-card.wc-assessment { border-left-color: #0ea5e9; background: rgba(14,165,233,.03); }
+.week-ev-card.wc-interview  { border-left-color: #f59e0b; background: rgba(245,158,11,.03); }
+.week-ev-card.wc-drive      { border-left-color: #10b981; background: rgba(16,185,129,.03); }
+.week-ev-card.wc-offer      { border-left-color: #a855f7; background: rgba(168,85,247,.03); }
+.week-ev-card.wc-campus     { border-left-color: #6366f1; background: rgba(99,102,241,.03); }
+
+/* ---- Loading overlay ---- */
+.cal-loading {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,.78);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; border-radius: var(--radius-lg);
+}
+
+/* ---- Empty state ---- */
+.cal-empty {
+    text-align: center; padding: 4.5rem 2rem;
+    border: 1.5px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    background: #fff; animation: fadeIn .4s ease;
+}
+.cal-empty-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--primary-light);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem; font-size: 2rem; color: var(--primary);
+}
+
+/* ---- Sidebar ---- */
+.sidebar-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+.sidebar-panel-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; gap: .6rem;
+    background: var(--bg-canvas);
+}
+.sidebar-panel-header h3 {
+    font-size: .83rem; font-weight: 700;
+    color: var(--text-primary); margin: 0;
+    text-transform: uppercase; letter-spacing: .4px;
+}
+.sidebar-panel-body { padding: 1rem 1.1rem; }
+
+/* deadline item cards */
+.dl-item {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .8rem .9rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary);
+    background: var(--bg-canvas);
+    cursor: pointer; transition: var(--transition-fast);
+    margin-bottom: .7rem;
+}
+.dl-item:last-child { margin-bottom: 0; }
+.dl-item:hover { transform: translateX(3px); box-shadow: var(--shadow-sm); border-color: var(--border-color-hover); }
+.dl-logo {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .9rem; color: #fff;
+    flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+.dl-role { font-size: .79rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-company { font-size: .71rem; font-weight: 600; color: var(--primary); }
+.dl-meta { font-size: .64rem; color: var(--text-muted); display: flex; align-items: center; gap: .5rem; margin-top: .2rem; }
+.pri-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pri-high   { background: var(--danger);  box-shadow: 0 0 5px var(--danger); }
+.pri-medium { background: var(--warning); box-shadow: 0 0 5px var(--warning); }
+.pri-low    { background: var(--success); box-shadow: 0 0 5px var(--success); }
+
+/* today agenda items */
+.agenda-item {
+    display: flex; align-items: flex-start; gap: .65rem;
+    padding: .7rem .85rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-canvas);
+    cursor: pointer; transition: var(--transition-fast);
+    margin-bottom: .65rem;
+}
+.agenda-item:last-child { margin-bottom: 0; }
+.agenda-item:hover { border-color: rgba(99,102,241,.3); box-shadow: var(--shadow-sm); }
+.agenda-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; flex-shrink: 0;
+    background: var(--primary-light); color: var(--primary);
+}
+.agenda-role { font-size: .78rem; font-weight: 700; color: var(--text-primary); }
+.agenda-company { font-size: .7rem; color: var(--text-muted); }
+
+/* ---- Event Detail Modal ---- */
+.ev-modal-header {
+    background: var(--primary-gradient);
+    padding: 1.25rem 1.5rem;
+    border-bottom: none;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.ev-modal-logo {
+    width: 44px; height: 44px; border-radius: 11px;
+    background: rgba(255,255,255,.25);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(255,255,255,.35);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.1rem; color: #fff; flex-shrink: 0;
+}
+.ev-modal-body { padding: 1.5rem; }
+.ev-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.25rem;
+}
+.ev-info-box {
+    padding: .75rem 1rem; border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-canvas);
+}
+.ev-info-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-bottom: .3rem; }
+.ev-info-val { font-size: .82rem; font-weight: 600; color: var(--text-primary); }
+.ev-info-full { grid-column: 1 / -1; }
+.ev-desc-section h6 { font-size: .83rem; font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; }
+.ev-desc-section p  { font-size: .82rem; color: var(--text-secondary); line-height: 1.7; white-space: pre-line; }
+
+/* ---- Animations ---- */
+@keyframes fadeIn   { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin     { to { transform: rotate(360deg); } }
+
+/* ---- Responsive ---- */
+@media (max-width: 991px) {
+    .cal-hero { padding: 1.5rem 1.25rem 1.25rem; }
+    .cal-hero h1 { font-size: 1.3rem; }
+    .hero-stat-chips { gap: .5rem; margin-top: 1rem; }
+}
+@media (max-width: 768px) {
+    .ev-info-grid { grid-template-columns: 1fr; }
+    .ev-info-full { grid-column: auto; }
+    .month-grid .day-cell { min-height: 70px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════
+     HERO HEADER
+═══════════════════════════════════════════ -->
+<div class="cal-hero">
+    <div class="d-flex align-items-center gap-3 mb-1" style="position:relative;z-index:1;">
+        <div class="d-flex align-items-center justify-content-center rounded-3"
+             style="width:46px;height:46px;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.3);font-size:1.3rem;">
+            📅
+        </div>
+        <div>
+            <h1 class="mb-0">Placement Event Calendar</h1>
+            <p>All your deadlines, interviews, and drives — synced automatically from your activity.</p>
+        </div>
+    </div>
+
+    <!-- Stat Chips (populated by JS after API call) -->
+    <div class="hero-stat-chips" id="heroStatChips" style="position:relative;z-index:1;">
+        <div class="hero-stat-chip">
+            <i class="fa-solid fa-calendar-days" style="opacity:.8;"></i>
+            <span class="chip-num" id="chipTotalEvents">—</span>
+            <span style="opacity:.85;">Upcoming</span>
+        </div>
+        <div class="hero-stat-chip">
+            <i class="fa-solid fa-calendar-xmark" style="opacity:.8;"></i>
+            <span class="chip-num" id="chipDeadlines">—</span>
+            <span style="opacity:.85;">Deadlines This Week</span>
+        </div>
+        <div class="hero-stat-chip">
+            <i class="fa-solid fa-comments" style="opacity:.8;"></i>
+            <span class="chip-num" id="chipInterviews">—</span>
+            <span style="opacity:.85;">Interviews</span>
+        </div>
+        <div class="hero-stat-chip">
+            <i class="fa-solid fa-file-invoice" style="opacity:.8;"></i>
+            <span class="chip-num" id="chipAssessments">—</span>
+            <span style="opacity:.85;">Assessments</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN LAYOUT
+═══════════════════════════════════════════ -->
+<div class="row g-4">
+
+    <!-- LEFT: Calendar -->
+    <div class="col-lg-8">
+
+        <!-- Filter Bar -->
+        <div class="cal-filter-bar">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-filter text-primary" style="font-size:.82rem;"></i>
+                <span style="font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);">Filter:</span>
+            </div>
+            <div class="filter-pills">
+                <div class="fpill active" data-type="jobs"        id="fpill-jobs"        onclick="toggleFilter('jobs',this)">
+                    <i class="fa-solid fa-briefcase" style="font-size:.7rem;"></i> Jobs
+                </div>
+                <div class="fpill active" data-type="internships" id="fpill-internships" onclick="toggleFilter('internships',this)">
+                    <i class="fa-solid fa-laptop-code" style="font-size:.7rem;"></i> Internships
+                </div>
+                <div class="fpill active" data-type="assessments" id="fpill-assessments" onclick="toggleFilter('assessments',this)">
+                    <i class="fa-solid fa-file-invoice" style="font-size:.7rem;"></i> Assessments
+                </div>
+                <div class="fpill active" data-type="interviews"  id="fpill-interviews"  onclick="toggleFilter('interviews',this)">
+                    <i class="fa-solid fa-comments" style="font-size:.7rem;"></i> Interviews
+                </div>
+                <div class="fpill active" data-type="deadlines"   id="fpill-deadlines"   onclick="toggleFilter('deadlines',this)">
+                    <i class="fa-solid fa-calendar-xmark" style="font-size:.7rem;"></i> Deadlines
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Card -->
+        <div class="cal-card" id="calCard">
+            <!-- Loading Overlay -->
+            <div class="cal-loading d-none" id="calLoading">
+                <div class="spinner-border text-primary" style="width:2rem;height:2rem;" role="status">
+                    <span class="visually-hidden">Loading…</span>
+                </div>
+            </div>
+
+            <!-- Nav Header -->
+            <div class="cal-nav-header">
+                <div class="d-flex align-items-center gap-2">
+                    <h2 class="cal-month-title" id="calTitle">Loading…</h2>
+                    <div class="d-flex gap-1 ms-2">
+                        <button class="cal-nav-btn" onclick="navigateCal(-1)" title="Previous">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-outline-primary fw-bold px-3 py-1" onclick="goToToday()"
+                                style="font-size:.76rem;border-radius:99px!important;height:32px;padding-top:0!important;padding-bottom:0!important;display:flex;align-items:center;">
+                            Today
+                        </button>
+                        <button class="cal-nav-btn" onclick="navigateCal(1)" title="Next">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-secondary-subtle text-secondary border d-none d-md-inline-flex align-items-center gap-1 py-1 px-2" style="font-size:.7rem;border-radius:99px!important;">
+                        <i class="fa-solid fa-earth-asia" style="font-size:.65rem;"></i> IST (UTC+5:30)
+                    </span>
+                    <div class="cal-view-toggle">
+                        <button class="vtbtn active" id="vtMonth" onclick="switchView('month')">Month</button>
+                        <button class="vtbtn" id="vtWeek" onclick="switchView('week')">Week</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar View Container -->
+            <div id="calViewContainer"></div>
+        </div>
+
+        <!-- Empty State (shown when no events at all) -->
+        <div class="cal-empty d-none" id="calEmpty">
+            <div class="cal-empty-icon"><i class="fa-regular fa-calendar-plus"></i></div>
+            <h4 class="fw-bold mb-2" style="font-size:1.1rem;">No placement events yet</h4>
+            <p class="text-muted mb-4" style="font-size:.875rem;max-width:420px;margin-inline:auto;">
+                Save or apply to jobs and internships to automatically track deadlines, interviews, assessments, and more on your calendar.
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{{ url_for('student.jobs_list') }}" class="btn btn-primary px-4">
+                    <i class="fa-solid fa-briefcase me-2"></i>Explore Jobs
+                </a>
+                <a href="{{ url_for('student.internships') }}" class="btn btn-secondary px-4">
+                    <i class="fa-solid fa-laptop-code me-2"></i>Browse Internships
+                </a>
+            </div>
+        </div>
+
+    </div><!-- /col-lg-8 -->
+
+    <!-- RIGHT: Sidebar Panels -->
+    <div class="col-lg-4">
+        <div class="d-flex flex-column gap-4">
+
+            <!-- Panel 1: Upcoming Deadlines -->
+            <div class="sidebar-panel">
+                <div class="sidebar-panel-header">
+                    <div class="d-flex align-items-center justify-content-center rounded-2"
+                         style="width:28px;height:28px;background:rgba(239,68,68,.1);color:var(--danger);font-size:.82rem;">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                    <h3>Upcoming Deadlines</h3>
+                </div>
+                <div class="sidebar-panel-body">
+                    <div id="dlList">
+                        <!-- Skeleton placeholder -->
+                        <div class="dl-item" style="opacity:.4;pointer-events:none;">
+                            <div class="dl-logo" style="background:#e2e8f0;"></div>
+                            <div style="flex:1;">
+                                <div class="skeleton-box w-75 mb-1" style="height:12px;border-radius:4px;"></div>
+                                <div class="skeleton-box w-50" style="height:10px;border-radius:4px;"></div>
+                            </div>
+                        </div>
+                        <div class="dl-item" style="opacity:.25;pointer-events:none;">
+                            <div class="dl-logo" style="background:#e2e8f0;"></div>
+                            <div style="flex:1;">
+                                <div class="skeleton-box w-60 mb-1" style="height:12px;border-radius:4px;"></div>
+                                <div class="skeleton-box w-40" style="height:10px;border-radius:4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="dlEmpty" class="text-center py-4 text-muted d-none">
+                        <i class="fa-regular fa-clock fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0">No active deadlines right now.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Today's Agenda -->
+            <div class="sidebar-panel">
+                <div class="sidebar-panel-header">
+                    <div class="d-flex align-items-center justify-content-center rounded-2"
+                         style="width:28px;height:28px;background:rgba(99,102,241,.1);color:var(--primary);font-size:.82rem;">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h3>Today's Agenda</h3>
+                    <span id="todayBadge" class="ms-auto badge" style="font-size:.68rem;background:var(--primary-gradient);color:#fff;border-radius:99px;padding:.25em .65em;display:none;"></span>
+                </div>
+                <div class="sidebar-panel-body">
+                    <div id="agendaList">
+                        <div class="agenda-item" style="opacity:.35;pointer-events:none;">
+                            <div class="agenda-icon"></div>
+                            <div>
+                                <div class="skeleton-box w-75 mb-1" style="height:11px;border-radius:4px;"></div>
+                                <div class="skeleton-box w-50" style="height:9px;border-radius:4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="agendaEmpty" class="text-center py-4 text-muted d-none">
+                        <i class="fa-regular fa-sun fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0">No events scheduled for today. 🎉</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Quick Legend -->
+            <div class="sidebar-panel">
+                <div class="sidebar-panel-header">
+                    <div class="d-flex align-items-center justify-content-center rounded-2"
+                         style="width:28px;height:28px;background:rgba(16,185,129,.1);color:var(--success);font-size:.82rem;">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <h3>Event Legend</h3>
+                </div>
+                <div class="sidebar-panel-body">
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ev-badge ev-deadline" style="pointer-events:none;"><i class="fa-solid fa-calendar-xmark"></i> Application Deadline</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ev-badge ev-assessment" style="pointer-events:none;"><i class="fa-solid fa-list-check"></i> Assessment Date</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ev-badge ev-interview" style="pointer-events:none;"><i class="fa-solid fa-comments"></i> Interview Date</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ev-badge ev-drive" style="pointer-events:none;"><i class="fa-solid fa-briefcase"></i> Hiring Drive</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ev-badge ev-offer" style="pointer-events:none;"><i class="fa-solid fa-trophy"></i> Offer Deadline</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ev-badge ev-campus" style="pointer-events:none;"><i class="fa-solid fa-building"></i> Campus Placement</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div><!-- /col-lg-4 -->
+
+</div><!-- /row -->
+
+
+<!-- ═══════════════════════════════════════════
+     EVENT DETAIL MODAL
+═══════════════════════════════════════════ -->
+<div class="modal fade" id="evDetailModal" tabindex="-1" aria-hidden="true" style="backdrop-filter:blur(4px);">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content" style="border-radius:var(--radius-xl);overflow:hidden;border:none;box-shadow:var(--shadow-xl);">
+
+            <!-- Header -->
+            <div class="ev-modal-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="ev-modal-logo" id="evModalLogo">C</div>
+                    <div>
+                        <h5 class="fw-bold text-white mb-0" id="evModalTitle" style="font-size:1.05rem;">Event Title</h5>
+                        <span id="evModalCompany" style="font-size:.8rem;opacity:.88;color:#fff;"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="ev-modal-body">
+                <div class="ev-info-grid">
+                    <!-- Event Type -->
+                    <div class="ev-info-box">
+                        <div class="ev-info-label">Event Type</div>
+                        <span class="ev-badge d-inline-flex mt-1" id="evModalTypeBadge" style="font-size:.75rem;padding:.3rem .65rem;">Type</span>
+                    </div>
+                    <!-- Location -->
+                    <div class="ev-info-box">
+                        <div class="ev-info-label">Location</div>
+                        <div class="ev-info-val mt-1 text-truncate" id="evModalLocation">—</div>
+                    </div>
+                    <!-- Date -->
+                    <div class="ev-info-box ev-info-full">
+                        <div class="ev-info-label">Date &amp; Time</div>
+                        <div class="ev-info-val mt-1" id="evModalDate">
+                            <i class="fa-regular fa-clock me-1 text-primary" style="font-size:.8rem;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority indicator -->
+                <div class="d-flex align-items-center gap-2 mb-3 px-1" id="evModalPriorityRow">
+                    <span class="pri-dot" id="evModalPriDot"></span>
+                    <span class="text-muted" style="font-size:.76rem;font-weight:500;" id="evModalPriText"></span>
+                </div>
+
+                <!-- Description -->
+                <div class="ev-desc-section">
+                    <h6><i class="fa-solid fa-align-left text-primary me-1" style="font-size:.78rem;"></i>Description</h6>
+                    <p id="evModalDesc">No description available.</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 justify-content-between" style="background:var(--bg-canvas);">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" style="font-size:.82rem;">
+                    Close
+                </button>
+                <a id="evModalAction" href="#" target="_blank" class="btn btn-primary px-4" style="font-size:.82rem;">
+                    <i class="fa-solid fa-external-link-alt me-1" style="font-size:.72rem;"></i>Open Link
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+// ================================================================
+//   GLOBAL STATE
+// ================================================================
+let viewDate  = new Date();
+let viewMode  = 'month';
+let allEvents = [];
+let filters   = { jobs: true, internships: true, assessments: true, interviews: true, deadlines: true };
+
+// ---- Category helpers ----
+const CAT_BADGE = {
+    'Application Deadline':  'ev-deadline',
+    'Assessment Date':       'ev-assessment',
+    'Interview Date':        'ev-interview',
+    'Hiring Drive':          'ev-drive',
+    'Offer Deadline':        'ev-offer',
+    'Campus Placement Event':'ev-campus'
+};
+const CAT_ICON = {
+    'Application Deadline':  'fa-calendar-xmark',
+    'Assessment Date':       'fa-list-check',
+    'Interview Date':        'fa-comments',
+    'Hiring Drive':          'fa-briefcase',
+    'Offer Deadline':        'fa-trophy',
+    'Campus Placement Event':'fa-building'
+};
+const WEEK_CARD = {
+    'Application Deadline':  'wc-deadline',
+    'Assessment Date':       'wc-assessment',
+    'Interview Date':        'wc-interview',
+    'Hiring Drive':          'wc-drive',
+    'Offer Deadline':        'wc-offer',
+    'Campus Placement Event':'wc-campus'
+};
+const LOGO_GRADIENTS = [
+    'linear-gradient(135deg,#6366f1,#a855f7)',
+    'linear-gradient(135deg,#0ea5e9,#6366f1)',
+    'linear-gradient(135deg,#10b981,#0ea5e9)',
+    'linear-gradient(135deg,#f59e0b,#ef4444)',
+    'linear-gradient(135deg,#a855f7,#ec4899)'
+];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// ================================================================
+//   BOOT
+// ================================================================
+document.addEventListener('DOMContentLoaded', fetchEvents);
+
+// ================================================================
+//   FETCH
+// ================================================================
+function fetchEvents() {
+    showLoader(true);
+    fetch('/api/calendar/events')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                allEvents = data.events;
+                updateHeroStats();
+                renderAll();
+            } else {
+                showToast('Could not load calendar events.', 'danger');
+            }
+        })
+        .catch(() => showToast('Network error — could not reach server.', 'danger'))
+        .finally(() => showLoader(false));
+}
+
+// ================================================================
+//   STAT CHIPS
+// ================================================================
+function updateHeroStats() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const endWeek = new Date(today); endWeek.setDate(today.getDate() + 7);
+
+    const total      = allEvents.filter(e => new Date(e.eventDate) >= today).length;
+    const deadlines  = allEvents.filter(e => {
+        const d = new Date(e.eventDate); d.setHours(0,0,0,0);
+        return (e.eventType === 'Application Deadline' || e.eventType === 'Offer Deadline')
+            && d >= today && d <= endWeek;
+    }).length;
+    const interviews = allEvents.filter(e => e.eventType === 'Interview Date' && new Date(e.eventDate) >= today).length;
+    const assess     = allEvents.filter(e => e.eventType === 'Assessment Date' && new Date(e.eventDate) >= today).length;
+
+    animateChip('chipTotalEvents', total);
+    animateChip('chipDeadlines',   deadlines);
+    animateChip('chipInterviews',  interviews);
+    animateChip('chipAssessments', assess);
+}
+
+function animateChip(id, target) {
+    const el = document.getElementById(id); if (!el) return;
+    const dur = 600; const start = performance.now();
+    function step(ts) {
+        const p = Math.min((ts - start) / dur, 1);
+        el.textContent = Math.round(p * target);
+        if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+// ================================================================
+//   RENDER DISPATCHER
+// ================================================================
+function renderAll() {
+    updateTitle();
+    const filtered = allEvents.filter(matchesFilter);
+    const emptyEl  = document.getElementById('calEmpty');
+    const cardEl   = document.getElementById('calCard');
+
+    if (allEvents.length === 0) {
+        emptyEl.classList.remove('d-none');
+        cardEl.style.display = 'none';
+        renderDeadlinesSidebar();
+        renderAgendaSidebar(filtered);
+        return;
+    }
+    emptyEl.classList.add('d-none');
+    cardEl.style.display = '';
+
+    if (viewMode === 'month') renderMonth(filtered);
+    else renderWeek(filtered);
+
+    renderDeadlinesSidebar();
+    renderAgendaSidebar(filtered);
+}
+
+// ================================================================
+//   TITLE
+// ================================================================
+function updateTitle() {
+    const el = document.getElementById('calTitle'); if (!el) return;
+    if (viewMode === 'month') {
+        el.textContent = `${MONTH_NAMES[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+    } else {
+        const s = weekStart(viewDate);
+        const e = new Date(s); e.setDate(s.getDate() + 6);
+        el.textContent = s.getMonth() === e.getMonth()
+            ? `${MONTH_NAMES[s.getMonth()]} ${s.getFullYear()} — Week View`
+            : `${MONTH_NAMES[s.getMonth()]}–${MONTH_NAMES[e.getMonth()]} ${s.getFullYear()}`;
+    }
+}
+
+// ================================================================
+//   MONTH VIEW
+// ================================================================
+function renderMonth(events) {
+    const container = document.getElementById('calViewContainer');
+    const today = new Date();
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const prevDays = new Date(y, m, 0).getDate();
+
+    let html = `<div class="month-grid">
+        <div class="grid-hdr">Sun</div><div class="grid-hdr">Mon</div>
+        <div class="grid-hdr">Tue</div><div class="grid-hdr">Wed</div>
+        <div class="grid-hdr">Thu</div><div class="grid-hdr">Fri</div>
+        <div class="grid-hdr">Sat</div>
+    </div><div class="month-grid" style="border-top:none;">`;
+
+    // prev month pads
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const d = new Date(y, m - 1, prevDays - i);
+        html += buildDayCell(d, false, events, today);
+    }
+    // current month
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(y, m, i);
+        html += buildDayCell(d, true, events, today);
+    }
+    // next month pads
+    const drawn = firstDay + daysInMonth;
+    const pads  = drawn % 7 === 0 ? 0 : 7 - (drawn % 7);
+    for (let i = 1; i <= pads; i++) {
+        const d = new Date(y, m + 1, i);
+        html += buildDayCell(d, false, events, today);
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function buildDayCell(d, isCurrent, events, today) {
+    const isToday = sameDay(d, today);
+    const evHere = events.filter(e => sameDay(new Date(e.eventDate), d));
+    let evHtml = '';
+    // show max 3 badges to avoid overflow; if more show "+N more"
+    evHere.slice(0, 3).forEach(ev => {
+        const cls = CAT_BADGE[ev.eventType] || 'ev-campus';
+        const ico = CAT_ICON[ev.eventType]  || 'fa-bell';
+        const co  = (ev.companyName || '?').substring(0, 10);
+        evHtml += `<div class="ev-badge ${cls}" onclick="openModal(${ev.id},event)" title="${ev.roleTitle} at ${ev.companyName}">
+            <i class="fa-solid ${ico}"></i><span style="overflow:hidden;text-overflow:ellipsis;">${co}</span>
+        </div>`;
+    });
+    if (evHere.length > 3) {
+        evHtml += `<div class="ev-badge ev-campus" style="opacity:.7;cursor:default;justify-content:center;">+${evHere.length - 3} more</div>`;
+    }
+    return `<div class="day-cell${isToday ? ' is-today' : ''}${!isCurrent ? ' dim' : ''}">
+        <span class="day-num">${d.getDate()}</span>
+        <div style="display:flex;flex-direction:column;gap:3px;overflow:hidden;">${evHtml}</div>
+    </div>`;
+}
+
+// ================================================================
+//   WEEK VIEW
+// ================================================================
+function renderWeek(events) {
+    const container = document.getElementById('calViewContainer');
+    const today = new Date();
+    const s = weekStart(viewDate);
+    const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    let html = '<div class="week-grid">';
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(s); d.setDate(s.getDate() + i);
+        const isToday = sameDay(d, today);
+        const dayEvs = events.filter(e => sameDay(new Date(e.eventDate), d));
+
+        let evHtml = dayEvs.length === 0
+            ? '<div class="text-center py-4 text-muted" style="font-size:.72rem;opacity:.55;">No events</div>'
+            : dayEvs.map(ev => {
+                const cls = WEEK_CARD[ev.eventType] || 'wc-campus';
+                const ico = CAT_ICON[ev.eventType] || 'fa-bell';
+                return `<div class="week-ev-card ${cls}" onclick="openModal(${ev.id},event)">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold" style="font-size:.74rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.companyName}</span>
+                        <i class="fa-solid ${ico} text-muted" style="font-size:.62rem;flex-shrink:0;margin-left:4px;"></i>
+                    </div>
+                    <span style="font-size:.68rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.roleTitle}</span>
+                    <span style="font-size:.62rem;color:var(--text-muted);">${ev.eventType}</span>
+                </div>`;
+            }).join('');
+
+        html += `<div class="week-col${isToday ? ' is-today' : ''}">
+            <div class="week-day-hdr">
+                <span class="week-day-name">${dayNames[i]}</span>
+                <span class="week-day-num">${d.getDate()}</span>
+            </div>
+            <div class="week-events">${evHtml}</div>
+        </div>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// ================================================================
+//   SIDEBAR — DEADLINES
+// ================================================================
+function renderDeadlinesSidebar() {
+    const container = document.getElementById('dlList');
+    const emptyEl   = document.getElementById('dlEmpty');
+    if (!container) return;
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const deadlines = allEvents
+        .filter(e => {
+            const d = new Date(e.eventDate); d.setHours(0,0,0,0);
+            return (e.eventType === 'Application Deadline' || e.eventType === 'Offer Deadline') && d >= today;
+        })
+        .sort((a,b) => new Date(a.eventDate) - new Date(b.eventDate));
+
+    if (deadlines.length === 0) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('d-none');
+        return;
+    }
+    emptyEl.classList.add('d-none');
+
+    container.innerHTML = deadlines.slice(0, 6).map((ev, i) => {
+        const d = new Date(ev.eventDate);
+        const days = ev.daysRemaining;
+        const daysText = days === 0 ? '⚡ Due Today'
+                       : days === 1 ? '⏰ Due Tomorrow'
+                       : `${days} days left`;
+        const priClass = ev.priority === 'High' ? 'pri-high' : ev.priority === 'Medium' ? 'pri-medium' : 'pri-low';
+        const borderColor = ev.priority === 'High' ? 'var(--danger)' : ev.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
+        const grad = LOGO_GRADIENTS[i % LOGO_GRADIENTS.length];
+        const letter = (ev.companyName?.[0] || 'C').toUpperCase();
+        const dateStr = `${d.getDate()} ${d.toLocaleDateString('en-IN',{month:'short'})}`;
+
+        return `<div class="dl-item" onclick="openModal(${ev.id},event)" style="border-left-color:${borderColor};">
+            <div class="dl-logo" style="background:${grad};">${letter}</div>
+            <div style="min-width:0;flex:1;">
+                <div class="dl-role">${ev.roleTitle}</div>
+                <div class="dl-company">${ev.companyName}</div>
+                <div class="dl-meta">
+                    <i class="fa-regular fa-calendar" style="font-size:.62rem;"></i>${dateStr}
+                    <span class="pri-dot ${priClass}"></span>${daysText}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ================================================================
+//   SIDEBAR — TODAY'S AGENDA
+// ================================================================
+function renderAgendaSidebar(filtered) {
+    const container = document.getElementById('agendaList');
+    const emptyEl   = document.getElementById('agendaEmpty');
+    const badge     = document.getElementById('todayBadge');
+    if (!container) return;
+
+    const today = new Date();
+    const todayEvs = filtered.filter(e => sameDay(new Date(e.eventDate), today));
+
+    if (badge) {
+        if (todayEvs.length > 0) { badge.textContent = todayEvs.length; badge.style.display = ''; }
+        else { badge.style.display = 'none'; }
+    }
+
+    if (todayEvs.length === 0) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('d-none');
+        return;
+    }
+    emptyEl.classList.add('d-none');
+
+    container.innerHTML = todayEvs.map(ev => {
+        const cls = CAT_BADGE[ev.eventType] || 'ev-campus';
+        const ico = CAT_ICON[ev.eventType]  || 'fa-bell';
+        const iconBg = {
+            'Application Deadline':  'rgba(239,68,68,.1)',
+            'Assessment Date':       'rgba(14,165,233,.1)',
+            'Interview Date':        'rgba(245,158,11,.1)',
+            'Hiring Drive':          'rgba(16,185,129,.1)',
+            'Offer Deadline':        'rgba(168,85,247,.1)',
+            'Campus Placement Event':'rgba(99,102,241,.1)'
+        }[ev.eventType] || 'var(--primary-light)';
+        const iconColor = {
+            'Application Deadline':  '#dc2626',
+            'Assessment Date':       '#0284c7',
+            'Interview Date':        '#d97706',
+            'Hiring Drive':          '#059669',
+            'Offer Deadline':        '#9333ea',
+            'Campus Placement Event':'var(--primary)'
+        }[ev.eventType] || 'var(--primary)';
+
+        return `<div class="agenda-item" onclick="openModal(${ev.id},event)">
+            <div class="agenda-icon" style="background:${iconBg};color:${iconColor};">
+                <i class="fa-solid ${ico}"></i>
+            </div>
+            <div style="min-width:0;">
+                <div class="agenda-role text-truncate">${ev.roleTitle}</div>
+                <div class="agenda-company">${ev.companyName}</div>
+                <span class="ev-badge ${cls} mt-1 d-inline-flex" style="font-size:.63rem;padding:.2rem .5rem;">${ev.eventType}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ================================================================
+//   EVENT DETAIL MODAL
+// ================================================================
+function openModal(eventId, e) {
+    if (e) e.stopPropagation();
+    const ev = allEvents.find(x => x.id === eventId);
+    if (!ev) return;
+
+    document.getElementById('evModalLogo').textContent    = (ev.companyName?.[0] || 'C').toUpperCase();
+    document.getElementById('evModalTitle').textContent   = ev.roleTitle;
+    document.getElementById('evModalCompany').textContent = ev.companyName;
+    document.getElementById('evModalLocation').textContent = ev.location || 'Not Specified';
+
+    // Badge
+    const badge = document.getElementById('evModalTypeBadge');
+    badge.className = `ev-badge d-inline-flex mt-1 ${CAT_BADGE[ev.eventType] || 'ev-campus'}`;
+    badge.innerHTML = `<i class="fa-solid ${CAT_ICON[ev.eventType] || 'fa-bell'}"></i> ${ev.eventType}`;
+
+    // Date
+    const dt = new Date(ev.eventDate);
+    document.getElementById('evModalDate').innerHTML =
+        `<i class="fa-regular fa-clock me-1 text-primary" style="font-size:.78rem;"></i>` +
+        dt.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) +
+        ' · ' +
+        dt.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',hour12:true});
+
+    // Priority
+    const dot  = document.getElementById('evModalPriDot');
+    const txt  = document.getElementById('evModalPriText');
+    const pri  = ev.priority || 'Low';
+    dot.className = `pri-dot ${pri === 'High' ? 'pri-high' : pri === 'Medium' ? 'pri-medium' : 'pri-low'}`;
+    txt.textContent = `${pri} Priority — ${ev.daysRemaining === 0 ? 'Due Today' : ev.daysRemaining === 1 ? 'Due Tomorrow' : `${ev.daysRemaining} days remaining`}`;
+
+    // Description
+    document.getElementById('evModalDesc').textContent = ev.description || 'No description available for this event.';
+
+    // Action button
+    const btn = document.getElementById('evModalAction');
+    if (ev.applicationUrl && ev.applicationUrl !== '#') {
+        btn.href = ev.applicationUrl;
+        btn.classList.remove('d-none');
+        btn.innerHTML = ev.applicationUrl.startsWith('/')
+            ? '<i class="fa-solid fa-briefcase me-1" style="font-size:.72rem;"></i>View Details'
+            : '<i class="fa-solid fa-external-link-alt me-1" style="font-size:.72rem;"></i>Apply Now';
+    } else {
+        btn.classList.add('d-none');
+    }
+
+    new bootstrap.Modal(document.getElementById('evDetailModal')).show();
+}
+
+// ================================================================
+//   FILTER LOGIC
+// ================================================================
+function toggleFilter(key, el) {
+    filters[key] = !filters[key];
+    el.classList.toggle('active');
+    renderAll();
+}
+
+function matchesFilter(ev) {
+    const isIntern = (ev.sourceType === 'saved_internship' || ev.sourceType === 'applied_tracked' && ev.description?.toLowerCase().includes('intern'));
+    const isJob = !isIntern;
+    if (isJob     && !filters.jobs)        return false;
+    if (isIntern  && !filters.internships) return false;
+    if (ev.eventType === 'Assessment Date'                                      && !filters.assessments) return false;
+    if (ev.eventType === 'Interview Date'                                       && !filters.interviews)  return false;
+    if ((ev.eventType === 'Application Deadline' || ev.eventType === 'Offer Deadline') && !filters.deadlines)  return false;
+    return true;
+}
+
+// ================================================================
+//   NAVIGATION
+// ================================================================
+function navigateCal(dir) {
+    if (viewMode === 'month') viewDate.setMonth(viewDate.getMonth() + dir);
+    else viewDate.setDate(viewDate.getDate() + dir * 7);
+    renderAll();
+}
+
+function goToToday() {
+    viewDate = new Date();
+    renderAll();
+}
+
+function switchView(mode) {
+    viewMode = mode;
+    document.getElementById('vtMonth').classList.toggle('active', mode === 'month');
+    document.getElementById('vtWeek').classList.toggle('active', mode === 'week');
+    renderAll();
+}
+
+// ================================================================
+//   HELPERS
+// ================================================================
+function showLoader(show) {
+    document.getElementById('calLoading')?.classList.toggle('d-none', !show);
+}
+
+function sameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() &&
+           a.getMonth()    === b.getMonth()    &&
+           a.getDate()     === b.getDate();
+}
+
+function weekStart(d) {
+    const s = new Date(d);
+    s.setDate(d.getDate() - d.getDay());
+    s.setHours(0,0,0,0);
+    return s;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Login - CareerConnect{% endblock %}
+
+{% block auth_content %}
+
+<div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-5"
+     style="background:
+     radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+     radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%),
+     #f8fafc;">
+
+    <div class="card border-0 p-4 p-md-5 w-100"
+         style="max-width: 440px;
+         box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.12),
+         0 0 0 1px rgba(99, 102, 241, 0.04) !important;">
+
+        <!-- Logo -->
+        <div class="text-center mb-4">
+
+            <div class="brand-logo mx-auto mb-3"
+                 style="width: 52px;
+                 height: 52px;
+                 font-size: 1.6rem;
+                 border-radius: 12px;">
+
+                P
+
+            </div>
+
+            <h1 class="h3 fw-bold text-dark mb-1">
+                Welcome Back
+            </h1>
+
+            <p class="text-muted mb-0"
+               style="font-size: 0.88rem;">
+
+                Sign in to access your placement dashboard
+
+            </p>
+
+        </div>
+
+        <!-- Login Form -->
+        <form action="{{ url_for('auth.login') }}" method="POST">
+
+            <!-- Email -->
+            <div class="mb-3">
+
+                <label for="email"
+                       class="form-label text-muted fw-semibold"
+                       style="font-size: 0.82rem;">
+
+                    Email Address
+
+                </label>
+
+                <div class="position-relative">
+
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="sanjay@university.edu"
+                           required
+                           autocomplete="email"
+                           style="padding-left: 2.5rem !important;">
+
+                    <i class="fa-regular fa-envelope text-muted position-absolute"
+                       style="left: 14px;
+                       top: 50%;
+                       transform: translateY(-50%);
+                       font-size: 0.95rem;"></i>
+
+                </div>
+
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-1">
+
+                    <label for="password"
+                           class="form-label text-muted fw-semibold mb-0"
+                           style="font-size: 0.82rem;">
+
+                        Password
+
+                    </label>
+
+                    <a href="{{ url_for('auth.forgot_password') }}"
+                       class="text-decoration-none small fw-semibold">
+
+                        Forgot Password?
+
+                    </a>
+
+                </div>
+
+                <div class="position-relative">
+
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-control"
+                           placeholder="••••••••"
+                           required
+                           autocomplete="current-password"
+                           style="padding-left: 2.5rem !important;">
+
+                    <i class="fa-solid fa-lock text-muted position-absolute"
+                       style="left: 14px;
+                       top: 50%;
+                       transform: translateY(-50%);
+                       font-size: 0.95rem;"></i>
+
+                </div>
+
+            </div>
+
+            <!-- Sign In Button -->
+            <button type="submit"
+                    class="btn btn-primary w-100 py-2.5 mt-2">
+
+                <i class="fa-solid fa-right-to-bracket me-2"></i>
+
+                Sign In
+
+            </button>
+
+        </form>
+
+        <!-- Register -->
+        <div class="text-center mt-4 text-muted"
+             style="font-size: 0.88rem;">
+
+            Don't have an account?
+
+            <a href="{{ url_for('auth.register') }}"
+               class="text-primary text-decoration-none fw-bold">
+
+                Register here
+
+            </a>
+
+        </div>
+
+        <!-- Google Login -->
+        <a href="/google/login"
+           class="btn btn-light border w-100 py-2 mt-3 d-flex align-items-center justify-content-center gap-2"
+           style="font-weight: 600; border-radius: 12px;">
+
+            <i class="fa-brands fa-google text-danger"></i>
+
+            Continue with Google
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

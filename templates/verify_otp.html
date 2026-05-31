@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block auth_content %}
+
+<div class="container py-5">
+
+    <div class="card p-5 mx-auto" style="max-width:450px;">
+
+        <h2 class="fw-bold mb-4">
+            Verify OTP
+        </h2>
+
+        <form method="POST">
+
+            <input type="text"
+                   name="otp"
+                   class="form-control mb-3"
+                   placeholder="Enter OTP"
+                   required>
+
+            <input type="password"
+                   name="new_password"
+                   class="form-control mb-4"
+                   placeholder="New Password"
+                   required>
+
+            <button type="submit"
+                    class="btn btn-primary w-100">
+
+                Reset Password
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

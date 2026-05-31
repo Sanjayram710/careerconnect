@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Security Authorization</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f3f6f8;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Fira Sans", Ubuntu, Oxygen, "Oxygen Sans", Cantarell, "Droid Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Lucida Grande", Helvetica, Arial, sans-serif;
+        }
+        .auth-container {
+            max-width: 520px;
+            margin: 60px auto;
+        }
+        .linkedin-card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .linkedin-header {
+            padding: 24px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+        }
+        .linkedin-logo {
+            font-size: 2.2rem;
+            color: #0a66c2;
+            font-weight: 800;
+        }
+        .linkedin-logo span {
+            background-color: #0a66c2;
+            color: #ffffff;
+            padding: 0 4px;
+            border-radius: 3px;
+            margin-left: 2px;
+            font-weight: 800;
+        }
+        .profile-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .profile-option:hover {
+            border-color: #0a66c2;
+            background-color: #f8faff;
+        }
+        .profile-option.active {
+            border-color: #0a66c2;
+            background-color: #f0f7ff;
+            box-shadow: 0 0 0 1px #0a66c2;
+        }
+        .avatar-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="linkedin-card p-4">
+            <div class="linkedin-header mb-4">
+                <div class="linkedin-logo">Linked<span>in</span></div>
+                <div class="text-muted mt-2 fw-semibold" style="font-size: 0.95rem;">
+                    <i class="fa-solid fa-shield-halved text-success me-1"></i> Sandbox OAuth 2.0 Environment
+                </div>
+            </div>
+            
+            <h2 class="h5 fw-bold text-center text-dark mb-3">Sync Professional Candidate Metrics</h2>
+            <p class="text-muted text-center small mb-4">
+                The application is running in OAuth Sandbox simulation mode since actual LinkedIn Client Credentials are not set in your environmental parameters. Choose a professional profile to test data import:
+            </p>
+            
+            <form action="{{ url_for('linkedin.linkedin_sandbox_callback') }}" method="POST" id="authForm">
+                <!-- Sandbox Profile Option 1 -->
+                <div class="profile-option active d-flex align-items-center gap-3" onclick="selectProfile('sanjay', this)">
+                    <input class="form-check-input d-none" type="radio" name="profile_type" id="profSanjay" value="sanjay" checked>
+                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=256&auto=format&fit=crop" class="avatar-img" alt="Sanjay">
+                    <div style="overflow: hidden;">
+                        <h4 class="fw-bold mb-0 text-dark" style="font-size: 0.92rem;">Sanjay Ram (Default Student)</h4>
+                        <span class="text-muted d-block text-truncate" style="font-size: 0.78rem;">Aspiring Software Engineer | CSE Student at University</span>
+                    </div>
+                </div>
+                
+                <!-- Sandbox Profile Option 2 -->
+                <div class="profile-option d-flex align-items-center gap-3" onclick="selectProfile('jane', this)">
+                    <input class="form-check-input d-none" type="radio" name="profile_type" id="profJane" value="jane">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop" class="avatar-img" alt="Jane">
+                    <div style="overflow: hidden;">
+                        <h4 class="fw-bold mb-0 text-dark" style="font-size: 0.92rem;">Jane Doe (AI / ML Candidate)</h4>
+                        <span class="text-muted d-block text-truncate" style="font-size: 0.78rem;">AI & Machine Learning Enthusiast | Computer Science Undergrad</span>
+                    </div>
+                </div>
+                
+                <!-- Sandbox Profile Option 3 -->
+                <div class="profile-option d-flex align-items-center gap-3" onclick="selectProfile('john', this)">
+                    <input class="form-check-input d-none" type="radio" name="profile_type" id="profJohn" value="john">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" class="avatar-img" alt="John">
+                    <div style="overflow: hidden;">
+                        <h4 class="fw-bold mb-0 text-dark" style="font-size: 0.92rem;">John Smith (MERN Candidate)</h4>
+                        <span class="text-muted d-block text-truncate" style="font-size: 0.78rem;">Full Stack Developer | Open Source Contributor</span>
+                    </div>
+                </div>
+                
+                <!-- Scope authorization details list -->
+                <div class="p-3 my-4 rounded" style="background-color: #f9f9f9; font-size: 0.78rem; border: 1px solid #e8e8e8;">
+                    <span class="d-block fw-bold text-dark mb-1">Redesign Portal requests authorization for:</span>
+                    <ul class="mb-0 ps-3 text-muted">
+                        <li>Access your LinkedIn name, profile photo, and public summary</li>
+                        <li>Retrieve primary email address credentials</li>
+                        <li>Sync technical skills registry database tags</li>
+                    </ul>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary py-2.5 fw-bold" style="background-color: #0a66c2; border: none; border-radius: 24px;">
+                        Authorize & Synchronize Connection
+                    </button>
+                    <a href="{{ url_for('student.profile') }}" class="btn btn-outline-secondary py-2.5 fw-bold" style="border-radius: 24px;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function selectProfile(val, element) {
+            // Uncheck all radios
+            document.getElementById('profSanjay').checked = false;
+            document.getElementById('profJane').checked = false;
+            document.getElementById('profJohn').checked = false;
+            
+            // Check selected
+            if (val === 'sanjay') document.getElementById('profSanjay').checked = true;
+            if (val === 'jane') document.getElementById('profJane').checked = true;
+            if (val === 'john') document.getElementById('profJohn').checked = true;
+            
+            // Remove active class from all options
+            const options = document.querySelectorAll('.profile-option');
+            options.forEach(opt => opt.classList.remove('active'));
+            
+            // Add active to clicked element
+            element.classList.add('active');
+        }
+    </script>
+</body>
+</html>

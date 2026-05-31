@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1">My Profile</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Keep your professional profile complete to stand out to top employers and get more opportunities.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Profile Summary Card -->
+    <div class="col-lg-4 col-md-5">
+        <div class="card border-0 p-4 text-center mb-4">
+            <div class="navbar-avatar mb-3 mx-auto" style="width: 76px; height: 76px; font-size: 2.25rem; font-weight: 700; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);">
+                {{ current_user.name[:2].upper() }}
+            </div>
+            <h2 class="h5 fw-bold text-dark mb-1">{{ current_user.name }}</h2>
+            <p class="text-primary fw-semibold mb-1" style="font-size: 0.85rem;">
+                {{ current_user.experience or 'Professional' }}
+            </p>
+            <p class="text-muted mb-4" style="font-size: 0.82rem;">
+                <i class="fa-solid fa-location-dot me-1"></i>{{ current_user.location or 'Location not set' }}
+            </p>
+
+            <!-- Profile completion ring -->
+            <div class="d-flex justify-content-center mb-4">
+                <div class="position-relative" style="width: 90px; height: 90px;">
+                    <svg viewBox="0 0 36 36" width="90" height="90">
+                        <circle cx="18" cy="18" r="15.9155" fill="none" stroke="var(--border-color)" stroke-width="2.5"/>
+                        <circle id="profileRingFill" cx="18" cy="18" r="15.9155" fill="none"
+                            stroke="url(#progressGradient)" stroke-width="2.5"
+                            stroke-linecap="round" transform="rotate(-90 18 18)"
+                            data-pct="{{ profile_completion }}"/>
+                        <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#6366f1"/>
+                                <stop offset="100%" stop-color="#a855f7"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="position-absolute top-50 start-50 translate-middle text-center">
+                        <span class="fw-bold text-dark" style="font-size: 1rem;">{{ profile_completion }}%</span>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted mb-0" style="font-size: 0.75rem;">Profile Completeness</p>
+
+            <div class="text-start border-top pt-4 mt-2" style="border-color: var(--border-color) !important;">
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">PHONE</span>
+                    <span class="text-dark fw-bold" style="font-size: 0.85rem;">{{ current_user.phone or '—' }}</span>
+                </div>
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">EXPERIENCE</span>
+                    <span class="text-dark fw-bold" style="font-size: 0.85rem;">{{ current_user.experience or '—' }}</span>
+                </div>
+                <div class="mb-0 d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">MEMBER SINCE</span>
+                    <span class="text-dark fw-bold" style="font-size: 0.82rem;">{{ current_user.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Display Card -->
+        <div class="card border-0 p-4">
+            <h3 class="h6 fw-bold text-dark mb-3"><i class="fa-solid fa-code text-primary me-2"></i> Technical Skills</h3>
+            <div class="skills-badge-container">
+                {% if current_user.skills %}
+                    {% for skill in current_user.skills.split(',') %}
+                        <span class="skill-tag">{{ skill.strip() }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="text-muted small italic">No skills listed yet. Add skills in the form.</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Edit Form -->
+    <div class="col-lg-8 col-md-7">
+        <div class="card border-0 p-4 p-md-5">
+            <h2 class="h5 fw-bold text-dark mb-4"><i class="fa-solid fa-id-card text-primary me-2"></i> Professional Information</h2>
+
+            <form action="{{ url_for('student.profile') }}" method="POST">
+                <!-- Name & Phone Row -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ current_user.name }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phone" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Phone Number</label>
+                        <input type="text" id="phone" name="phone" class="form-control" placeholder="+91 9876543210" value="{{ current_user.phone or '' }}">
+                    </div>
+                </div>
+
+                <!-- Email (disabled) -->
+                <div class="mb-3">
+                    <label for="email" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Email Address</label>
+                    <input type="email" id="email" class="form-control" value="{{ current_user.email }}" disabled>
+                    <span class="text-muted d-block mt-1" style="font-size: 0.72rem;"><i class="fa-solid fa-lock me-1"></i> Email cannot be changed.</span>
+                </div>
+
+                <!-- Location & Experience Row -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="location" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Location</label>
+                        <input type="text" id="location" name="location" class="form-control" placeholder="e.g. Bangalore, India" value="{{ current_user.location or '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="experience" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Experience Level</label>
+                        <select id="experience" name="experience" class="form-select">
+                            <option value="Fresher" {% if current_user.experience == 'Fresher' %}selected{% endif %}>Fresher (0 years)</option>
+                            <option value="1 year" {% if current_user.experience == '1 year' %}selected{% endif %}>1 Year</option>
+                            <option value="2 years" {% if current_user.experience == '2 years' %}selected{% endif %}>2 Years</option>
+                            <option value="3 years" {% if current_user.experience == '3 years' %}selected{% endif %}>3 Years</option>
+                            <option value="4 years" {% if current_user.experience == '4 years' %}selected{% endif %}>4 Years</option>
+                            <option value="5+ years" {% if current_user.experience == '5+ years' %}selected{% endif %}>5+ Years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <div class="mb-3">
+                    <label for="bio" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Professional Bio</label>
+                    <textarea id="bio" name="bio" class="form-control" rows="3" placeholder="Tell employers about yourself — your background, goals, and what makes you unique." style="resize: vertical; min-height: 80px;">{{ current_user.bio or '' }}</textarea>
+                </div>
+
+                <!-- Skills -->
+                <div class="mb-3">
+                    <label for="skills" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Skills <span class="fw-normal text-muted">(comma-separated)</span></label>
+                    <input type="text" id="skills" name="skills" class="form-control" placeholder="Python, SQL, React, Node.js, Docker" value="{{ current_user.skills or '' }}">
+                    <span class="text-muted d-block mt-1" style="font-size: 0.72rem;">Separate skill names with commas to display them as profile tags.</span>
+                </div>
+
+                <!-- Certifications -->
+                <div class="mb-4">
+                    <label for="certifications" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;">Certifications</label>
+                    <input type="text" id="certifications" name="certifications" class="form-control" placeholder="AWS Certified, Google Cloud Associate..." value="{{ current_user.certifications or '' }}">
+                </div>
+
+                <!-- Links Section -->
+                <h3 class="h6 fw-bold text-dark mt-4 mb-3"><i class="fa-solid fa-link text-primary me-2"></i> Portfolio & Social Links</h3>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="linkedin_url" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;"><i class="fa-brands fa-linkedin text-primary me-1"></i> LinkedIn URL</label>
+                        <input type="url" id="linkedin_url" name="linkedin_url" class="form-control" placeholder="https://linkedin.com/in/yourname" value="{{ current_user.linkedin_url or '' }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="portfolio_url" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;"><i class="fa-solid fa-globe text-secondary me-1"></i> Portfolio / Website</label>
+                        <input type="url" id="portfolio_url" name="portfolio_url" class="form-control" placeholder="https://yourportfolio.com" value="{{ current_user.portfolio_url or '' }}">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="github_url" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;"><i class="fa-brands fa-github text-dark me-1"></i> GitHub Profile</label>
+                        <input type="url" id="github_url" name="github_url" class="form-control" placeholder="https://github.com/yourname" value="{{ current_user.github_url or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="resume_link" class="form-label text-muted fw-semibold" style="font-size: 0.82rem;"><i class="fa-solid fa-file-lines text-danger me-1"></i> Resume URL</label>
+                        <input type="url" id="resume_link" name="resume_link" class="form-control" placeholder="https://drive.google.com/..." value="{{ current_user.resume_link or '' }}">
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="fa-solid fa-floppy-disk me-2"></i> Save Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Resume Upload Section -->
+<div class="card border-0 p-4 mt-4">
+    <h3 class="h6 fw-bold text-dark mb-3">
+        <i class="fa-solid fa-file-arrow-up text-primary me-2"></i>
+        Upload Resume (PDF)
+    </h3>
+    <p class="text-muted small mb-3">Upload your latest resume PDF. This will be shared with employers when you apply.</p>
+
+    <form action="{{ url_for('student.upload_resume') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-3 flex-wrap">
+        <input type="file" name="resume_file" accept=".pdf" required class="form-control" style="max-width: 320px;">
+        <button type="submit" class="btn btn-primary px-4 py-2">
+            <i class="fa-solid fa-upload me-2"></i> Upload Resume
+        </button>
+        {% if current_user.resume_filename %}
+            <a href="{{ url_for('student.download_own_resume') }}" target="_blank" class="btn btn-outline-success px-4 py-2">
+                <i class="fa-solid fa-eye me-2"></i> View Uploaded Resume
+            </a>
+        {% endif %}
+    </form>
+
+    {% if current_user.resume_filename %}
+        <div class="mt-2">
+            <span class="text-success small"><i class="fa-solid fa-circle-check me-1"></i> Resume on file: {{ current_user.resume_filename }}</span>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Social Links Quick Access -->
+{% if current_user.linkedin_url or current_user.portfolio_url or current_user.github_url %}
+<div class="card border-0 p-4 mt-4">
+    <h3 class="h6 fw-bold text-dark mb-3"><i class="fa-solid fa-share-nodes text-primary me-2"></i> Your Links</h3>
+    <div class="d-flex flex-wrap gap-3">
+        {% if current_user.linkedin_url %}
+            <a href="{{ current_user.linkedin_url }}" target="_blank" class="btn btn-sm btn-outline-primary px-3 py-2">
+                <i class="fa-brands fa-linkedin me-2"></i> LinkedIn
+            </a>
+        {% endif %}
+        {% if current_user.portfolio_url %}
+            <a href="{{ current_user.portfolio_url }}" target="_blank" class="btn btn-sm btn-outline-secondary px-3 py-2">
+                <i class="fa-solid fa-globe me-2"></i> Portfolio
+            </a>
+        {% endif %}
+        {% if current_user.github_url %}
+            <a href="{{ current_user.github_url }}" target="_blank" class="btn btn-sm btn-outline-dark px-3 py-2">
+                <i class="fa-brands fa-github me-2"></i> GitHub
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="CareerConnect — Discover jobs, internships and career opportunities. Build your professional profile and apply to top companies worldwide.">
+    <title>{% block title %}CareerConnect{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Page Loading Screen -->
+    <div class="loader-overlay" id="pageLoader">
+        <div class="loader-spinner"></div>
+        <span class="mt-3 fw-bold" style="color: var(--text-muted); font-family: 'Poppins', sans-serif; font-size: 0.85rem;">Loading CareerConnect…</span>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="alert-toast-container" id="alertsContainer">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast show align-items-center border-0 mb-2 toast-item {{ category if category else 'info' }}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex align-items-center p-3 gap-2">
+                            {% if category == 'success' %}
+                                <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                            {% elif category == 'danger' %}
+                                <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-info text-primary fs-5"></i>
+                            {% endif %}
+                            <span class="fw-semibold flex-grow-1" style="font-size: 0.875rem; color: var(--text-primary);">{{ message }}</span>
+                            <button type="button" class="btn-close ms-2" style="font-size: 0.7rem;" aria-label="Close" onclick="this.closest('.toast').remove()"></button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    {% if current_user.is_authenticated %}
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <div class="app-layout">
+            <!-- Left Sidebar Navigation -->
+            <aside class="sidebar-wrapper d-flex flex-column justify-content-between p-3" id="appSidebar">
+                <div>
+                    <!-- Sidebar Brand -->
+                    <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom: 1px solid var(--border-color);">
+                        <div class="brand-logo">C</div>
+                        <div>
+                            <span class="brand-text d-block">CareerConnect</span>
+                            <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;">PLATFORM</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav>
+                        {% if current_user.is_admin %}
+                            <div class="sidebar-section-label">Management</div>
+                            <ul class="nav flex-column gap-1">
+                                <li class="nav-item">
+                                    <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}">
+                                        <i class="fa-solid fa-gauge-high"></i>
+                                        <span>Admin Dashboard</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        {% else %}
+                            <div class="sidebar-section-label">Overview</div>
+                            <ul class="nav flex-column gap-1 mb-3">
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.dashboard') }}" class="sidebar-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                                        <i class="fa-solid fa-chart-pie"></i>
+                                        <span>Dashboard</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.profile') }}" class="sidebar-link {% if request.endpoint == 'student.profile' %}active{% endif %}">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                        <span>My Profile</span>
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <div class="sidebar-section-label">Opportunities</div>
+                            <ul class="nav flex-column gap-1 mb-3">
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.jobs_list') }}"
+   class="sidebar-link {% if request.endpoint in ['student.jobs_list', 'student.explore_jobs'] %}active{% endif %}">
+    <i class="fa-solid fa-briefcase"></i>
+    <span>Explore Jobs</span>
+</a>
+                                </li>
+                                <li class="nav-item">
+
+    <a href="{{ url_for('student.internships') }}"
+       class="sidebar-link {% if request.endpoint == 'student.internships' %}active{% endif %}">
+
+        <i class="fa-solid fa-laptop-code"></i>
+
+        <span>Internships</span>
+
+    </a>
+
+</li>
+
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.my_applications') }}" class="sidebar-link {% if request.endpoint == 'student.my_applications' %}active{% endif %}">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>My Applications</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.companies_list') }}" class="sidebar-link {% if request.endpoint == 'student.companies_list' %}active{% endif %}">
+                                        <i class="fa-solid fa-building"></i>
+                                        <span>Companies</span>
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <div class="sidebar-section-label">Communication</div>
+                            <ul class="nav flex-column gap-1">
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.messages_inbox') }}" class="sidebar-link {% if request.endpoint == 'student.messages_inbox' %}active{% endif %}">
+                                        <i class="fa-solid fa-envelope"></i>
+                                        <span>Messages</span>
+                                        {% if unread_messages_count and unread_messages_count > 0 %}
+                                            <span class="badge rounded-pill ms-auto" style="background: var(--danger-gradient); color: #fff; font-size: 0.65rem; padding: 0.2em 0.55em;">{{ unread_messages_count }}</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.calendar_view') }}" class="sidebar-link {% if request.endpoint == 'student.calendar_view' %}active{% endif %}">
+                                        <i class="fa-solid fa-calendar-days"></i>
+                                        <span>Calendar</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('student.settings_view') }}" class="sidebar-link {% if request.endpoint == 'student.settings_view' %}active{% endif %}">
+                                        <i class="fa-solid fa-sliders"></i>
+                                        <span>Settings</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        {% endif %}
+                    </nav>
+                </div>
+
+                <!-- Sidebar Footer -->
+                <div class="pt-3" style="border-top: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded-3" style="background: var(--bg-canvas);">
+                        <div class="navbar-avatar">{{ current_user.name[:2].upper() }}</div>
+                        <div style="overflow: hidden; flex: 1;">
+                            <div class="fw-bold" style="font-size: 0.83rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--text-primary);">{{ current_user.name }}</div>
+                            <div style="font-size: 0.7rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: var(--text-muted);">{{ current_user.email }}</div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout-link py-2 justify-content-center">
+                        <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Right Content Container -->
+            <div class="main-content-outer">
+                <!-- Sticky Top Navbar -->
+                <header class="top-navbar">
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Mobile Menu Toggle -->
+                        <button class="nav-icon-btn d-lg-none" id="menuToggle" style="border-radius: var(--radius) !important;">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <!-- Search Bar -->
+                        {% if not current_user.is_admin %}
+                        <form action="{{ url_for('student.jobs_list') }}" method="GET" class="navbar-search d-none d-sm-block">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" name="search" class="form-control" placeholder="Search jobs, companies..." value="{{ request.args.get('search', '') }}">
+                        </form>
+                        {% else %}
+                        <span class="fw-bold" style="font-size: 0.9rem; color: var(--text-muted);">
+                            <i class="fa-solid fa-user-shield text-primary me-2"></i>Admin Control Panel
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right: Actions -->
+                    <div class="navbar-action-icons">
+                        {% if not current_user.is_admin %}
+                        <a href="{{ url_for('student.messages_inbox') }}" class="nav-icon-btn text-decoration-none">
+                            <i class="fa-regular fa-envelope"></i>
+                            {% if unread_messages_count and unread_messages_count > 0 %}
+                                <span class="badge-dot pulse"></span>
+                            {% endif %}
+                        </a>
+                        {% endif %}
+
+                        <!-- Notification Dropdown -->
+                        <div class="dropdown">
+                            <button class="nav-icon-btn" id="notificationBellBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-bell"></i>
+                                <span class="badge-dot pulse" id="notificationPulseDot"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end p-0 mt-2" style="width: 330px; border-radius: var(--radius-xl) !important; overflow: hidden;">
+                                <li class="p-3 pb-2" style="border-bottom: 1px solid var(--border-color); background: var(--bg-canvas);">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold" style="font-size: 0.9rem; color: var(--text-primary);">Notifications</span>
+                                        <span class="badge" style="background: var(--primary-gradient); color: #fff; font-size: 0.65rem; padding: 0.25em 0.6em; border-radius: 99px;">Live</span>
+                                    </div>
+                                </li>
+                                {% if current_user.is_admin %}
+                                    <li class="p-3 text-center" style="font-size: 0.82rem; color: var(--text-muted);">No admin notifications</li>
+                                {% else %}
+                                    <!-- Dynamic notification items rendered by JS -->
+                                    <div id="notifItemsContainer">
+                                        <li class="p-3 text-center" style="font-size:0.82rem;color:var(--text-muted);">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                            Loading…
+                                        </li>
+                                    </div>
+                                    <li class="p-2 text-center" style="border-top:1px solid var(--border-color);">
+                                        <a href="{{ url_for('student.calendar_view') }}" class="text-decoration-none fw-semibold" style="font-size:0.78rem;color:var(--primary);">View Full Calendar →</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- Profile Dropdown -->
+                        <div class="dropdown">
+                            <div class="navbar-profile-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="navbar-avatar">{{ current_user.name[:2].upper() }}</div>
+                                <span class="fw-semibold d-none d-md-inline" style="font-size: 0.85rem; color: var(--text-secondary);">{{ current_user.name.split()[0] }}</span>
+                                <i class="fa-solid fa-angle-down" style="font-size: 0.72rem; color: var(--text-muted);"></i>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end p-2 mt-2" style="width: 200px;">
+                                {% if not current_user.is_admin %}
+                                    <li><a class="dropdown-item py-2 px-3" href="{{ url_for('student.profile') }}"><i class="fa-regular fa-user me-2" style="color: var(--text-muted);"></i>My Profile</a></li>
+                                    <li><a class="dropdown-item py-2 px-3" href="{{ url_for('student.my_applications') }}"><i class="fa-regular fa-file-lines me-2" style="color: var(--text-muted);"></i>Applications</a></li>
+                                    <li><a class="dropdown-item py-2 px-3" href="{{ url_for('student.settings_view') }}"><i class="fa-solid fa-sliders me-2" style="color: var(--text-muted);"></i>Settings</a></li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item py-2 px-3 text-danger" href="{{ url_for('auth.logout') }}"><i class="fa-solid fa-right-from-bracket me-2"></i>Sign Out</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page Content -->
+                <main class="main-content-wrapper">
+                    {% block content %}{% endblock %}
+                </main>
+            </div>
+        </div>
+    {% else %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script>
+        // Dismiss page loader after load
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('pageLoader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 400);
+            }
+        });
+
+        // Auto-dismiss flash toasts after 5s
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.toast.show').forEach(el => {
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateX(30px)';
+                    el.style.transition = 'all 0.4s ease';
+                    setTimeout(() => el.remove(), 400);
+                }, 5000);
+            });
+        });
+
+        // Mobile Sidebar Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const appSidebar = document.getElementById('appSidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function openSidebar() {
+            appSidebar?.classList.add('show');
+            sidebarOverlay?.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeSidebar() {
+            appSidebar?.classList.remove('show');
+            sidebarOverlay?.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        menuToggle?.addEventListener('click', (e) => { e.stopPropagation(); openSidebar(); });
+        sidebarOverlay?.addEventListener('click', closeSidebar);
+
+        // Global toast helper (used by AJAX apply)
+        function showToast(message, type = 'info') {
+            const icons = {
+                success: '<i class="fa-solid fa-circle-check text-success fs-5"></i>',
+                danger:  '<i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>',
+                warning: '<i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>',
+                info:    '<i class="fa-solid fa-circle-info text-primary fs-5"></i>'
+            };
+            const toast = document.createElement('div');
+            toast.className = `toast show align-items-center border-0 toast-item ${type}`;
+            toast.innerHTML = `
+                <div class="d-flex align-items-center p-3 gap-2">
+                    ${icons[type] || icons.info}
+                    <span class="fw-semibold flex-grow-1" style="font-size:0.875rem;color:var(--text-primary);">${message}</span>
+                    <button type="button" class="btn-close ms-2" style="font-size:0.7rem;" onclick="this.closest('.toast').remove()"></button>
+                </div>`;
+            document.getElementById('alertsContainer')?.prepend(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(30px)';
+                toast.style.transition = 'all 0.4s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        }
+
+        // Animate count-up numbers on metric cards
+        function animateCounters() {
+            document.querySelectorAll('[data-count]').forEach(el => {
+                const target = parseFloat(el.dataset.count);
+                const decimals = el.dataset.decimals ? parseInt(el.dataset.decimals) : 0;
+                const duration = 900;
+                const start = performance.now();
+                function step(ts) {
+                    const progress = Math.min((ts - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    el.textContent = (eased * target).toFixed(decimals);
+                    if (progress < 1) requestAnimationFrame(step);
+                }
+                requestAnimationFrame(step);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', animateCounters);
+
+        // Animate skill progress bars
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.skill-bar-fill').forEach(bar => {
+                setTimeout(() => { bar.style.width = bar.dataset.width + '%'; }, 300);
+            });
+        });
+
+        // Profile completion ring animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const ring = document.getElementById('profileRingFill');
+            if (ring) {
+                const pct = parseFloat(ring.dataset.pct) || 0;
+                const r = parseFloat(ring.getAttribute('r'));
+                const circumference = 2 * Math.PI * r;
+                ring.style.strokeDasharray = circumference;
+                ring.style.strokeDashoffset = circumference;
+                setTimeout(() => {
+                    ring.style.strokeDashoffset = circumference - (pct / 100) * circumference;
+                }, 400);
+            }
+        });
+
+        // Dynamic notifications loader & pulse dot clearing
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('notifItemsContainer');
+            const bell = document.getElementById('notificationBellBtn');
+            const dot = document.getElementById('notificationPulseDot');
+            
+            if (container) {
+                const CAT_ICON = {
+                    'Application Deadline':  'fa-calendar-xmark',
+                    'Assessment Date':       'fa-list-check',
+                    'Interview Date':        'fa-comments',
+                    'Hiring Drive':          'fa-briefcase',
+                    'Offer Deadline':        'fa-trophy',
+                    'Campus Placement Event':'fa-building'
+                };
+
+                const CAT_COLORS = {
+                    'Application Deadline':  { bg: 'rgba(239,68,68,0.1)', fg: '#dc2626' },
+                    'Assessment Date':       { bg: 'rgba(14,165,233,0.1)', fg: '#0284c7' },
+                    'Interview Date':        { bg: 'rgba(245,158,11,0.1)',  fg: '#d97706' },
+                    'Hiring Drive':          { bg: 'rgba(16,185,129,0.1)',  fg: '#059669' },
+                    'Offer Deadline':        { bg: 'rgba(168,85,247,0.1)',  fg: '#9333ea' },
+                    'Campus Placement Event':{ bg: 'rgba(99,102,241,0.1)',  fg: 'var(--primary)' }
+                };
+
+                fetch('/api/calendar/events')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.events && data.events.length > 0) {
+                            const today = new Date(); today.setHours(0,0,0,0);
+                            const upcoming = data.events
+                                .filter(e => new Date(e.eventDate) >= today)
+                                .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+
+                            if (upcoming.length > 0) {
+                                // Smart reset of cleared flag when a new event appears
+                                const latestEvent = upcoming[0];
+                                const lastCheckedEventId = localStorage.getItem('ccLastCheckedEventId');
+                                if (latestEvent && String(latestEvent.id) !== lastCheckedEventId) {
+                                    localStorage.removeItem('ccNotificationsCleared');
+                                    localStorage.setItem('ccLastCheckedEventId', String(latestEvent.id));
+                                }
+
+                                // Only show pulse dot if not cleared and we have urgent/medium events
+                                const hasUrgent = upcoming.some(e => e.daysRemaining <= 3);
+                                if (hasUrgent && localStorage.getItem('ccNotificationsCleared') !== 'true') {
+                                    dot?.classList.remove('d-none');
+                                } else {
+                                    dot?.classList.add('d-none');
+                                }
+
+                                const items = upcoming.slice(0, 3).map(ev => {
+                                    const ico = CAT_ICON[ev.eventType] || 'fa-bell';
+                                    const col = CAT_COLORS[ev.eventType] || { bg: 'rgba(99,102,241,0.1)', fg: 'var(--primary)' };
+                                    const days = ev.daysRemaining;
+                                    const daysText = days === 0 ? '⚡ Due Today'
+                                                   : days === 1 ? '⏰ Due Tomorrow'
+                                                   : `${days} days left`;
+                                    
+                                    return `
+                                        <li>
+                                            <a class="dropdown-item py-2 px-3 d-flex align-items-start gap-3 border-bottom text-wrap" href="${window.location.origin}/calendar" style="border-color: var(--border-color); width: 100%;">
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px; background: ${col.bg}; color: ${col.fg}; font-size: 0.85rem;">
+                                                    <i class="fa-solid ${ico}"></i>
+                                                </div>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.82rem;">${ev.companyName}</div>
+                                                    <div class="text-secondary text-truncate" style="font-size: 0.74rem;">${ev.roleTitle}</div>
+                                                    <div class="text-muted mt-1 d-flex align-items-center gap-1" style="font-size: 0.68rem;">
+                                                        <span class="badge" style="background: ${col.bg}; color: ${col.fg}; font-size: 0.6rem; padding: 0.2em 0.5em;">${ev.eventType}</span>
+                                                        <span>&middot;</span>
+                                                        <span>${daysText}</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    `;
+                                }).join('');
+                                container.innerHTML = items;
+                            } else {
+                                dot?.classList.add('d-none');
+                                container.innerHTML = `
+                                    <li class="p-3 text-center" style="font-size: 0.82rem; color: var(--text-muted);">
+                                        <i class="fa-regular fa-bell-slash d-block mb-1 fs-5 opacity-50"></i>
+                                        No upcoming placement events
+                                    </li>
+                                `;
+                            }
+                        } else {
+                            dot?.classList.add('d-none');
+                            container.innerHTML = `
+                                <li class="p-3 text-center" style="font-size: 0.82rem; color: var(--text-muted);">
+                                    <i class="fa-regular fa-bell-slash d-block mb-1 fs-5 opacity-50"></i>
+                                    No upcoming placement events
+                                    <span class="d-block small text-muted mt-1">Save or apply to jobs to track.</span>
+                                </li>
+                            `;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching notifications:', err);
+                        container.innerHTML = `
+                            <li class="p-3 text-center text-danger" style="font-size: 0.82rem;">
+                                <i class="fa-solid fa-triangle-exclamation d-block mb-1 fs-5"></i>
+                                Failed to load notifications
+                            </li>
+                        `;
+                    });
+            }
+
+            if (bell && dot) {
+                bell.addEventListener('click', () => {
+                    dot.classList.add('d-none');
+                    localStorage.setItem('ccNotificationsCleared', 'true');
+                });
+            }
+        });
+    </script>
+
+    <!-- External Application Confirmation Modal -->
+    <div class="modal fade" id="confirmApplicationModal" tabindex="-1" aria-labelledby="confirmApplicationModalLabel" aria-hidden="true" style="backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: var(--radius-lg); overflow: hidden; border: none; box-shadow: var(--shadow-lg); background: var(--bg-canvas);">
+                <div class="modal-header border-0 bg-light p-4" style="background: var(--bg-canvas) !important; border-bottom: 1px solid var(--border-color) !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="navbar-avatar bg-primary text-white" style="width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: var(--primary-gradient) !important;">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" id="confirmApplicationModalLabel" style="font-size: 1.05rem; color: var(--text-primary) !important;">Track Application</h5>
+                            <span class="text-muted small" style="font-size: 0.75rem;">Record external application progress</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-secondary mb-3" style="font-size: 0.88rem; line-height: 1.6; color: var(--text-secondary) !important;">
+                        After submitting your application on the company website, please confirm below.
+                    </p>
+                    <div class="p-3 rounded-3 mb-2" style="background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                        <span class="d-block fw-bold text-dark mb-1" id="confirmModalRole" style="font-size: 0.95rem; color: var(--text-primary) !important;">Role Title</span>
+                        <span class="d-block text-primary fw-semibold small" id="confirmModalCompany" style="color: var(--primary) !important; font-size: 0.82rem;">Company Name</span>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis mt-2" id="confirmModalType" style="font-size: 0.68rem; text-transform: uppercase; padding: 0.35em 0.65em; border-radius: 6px;">Job</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal" style="font-size: 0.85rem; border-radius: 8px;">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 fw-semibold" id="confirmApplyBtn" style="font-size: 0.85rem; border-radius: 8px; background: var(--primary-gradient); border: none;">
+                        <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true" id="confirmApplySpinner"></span>
+                        I Have Applied
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store currently applying item details
+        let currentApplyingItem = null;
+
+        function showConfirmApplyModal(id, company, title, type) {
+            currentApplyingItem = { id, company, title, type };
+            
+            document.getElementById('confirmModalRole').textContent = title;
+            document.getElementById('confirmModalCompany').textContent = company;
+            
+            const typeBadge = document.getElementById('confirmModalType');
+            typeBadge.textContent = type;
+            if (type === 'job') {
+                typeBadge.className = 'badge bg-primary-subtle text-primary-emphasis mt-2';
+            } else {
+                typeBadge.className = 'badge bg-success-subtle text-success-emphasis mt-2';
+            }
+            
+            const modalEl = document.getElementById('confirmApplicationModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        // Intercept clicks on external apply links/buttons
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.external-apply-btn');
+            if (btn) {
+                if (btn.hasAttribute('disabled') || btn.classList.contains('disabled')) {
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+                const url = btn.getAttribute('href');
+                const id = btn.dataset.id;
+                const company = btn.dataset.company;
+                const title = btn.dataset.title;
+                const type = btn.dataset.type;
+                
+                // Open external URL in a new tab
+                window.open(url, '_blank');
+                
+                // Show modal
+                showConfirmApplyModal(id, company, title, type);
+            }
+        });
+
+        // Click handler for "I Have Applied" confirm button
+        document.getElementById('confirmApplyBtn')?.addEventListener('click', function() {
+            if (!currentApplyingItem) return;
+            
+            const btn = this;
+            const spinner = document.getElementById('confirmApplySpinner');
+            
+            // Show loading state
+            btn.setAttribute('disabled', 'true');
+            spinner?.classList.remove('d-none');
+            
+            const payload = {
+                companyName: currentApplyingItem.company,
+                roleTitle: currentApplyingItem.title,
+                applicationType: currentApplyingItem.type
+            };
+            if (currentApplyingItem.type === 'job') {
+                payload.jobId = currentApplyingItem.id;
+            } else {
+                payload.internshipId = currentApplyingItem.id;
+            }
+            
+            fetch('/api/applications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 201 && body.success) {
+                    showToast('Application tracked successfully & confirmation email sent!', 'success');
+                    
+                    // Update DOM buttons dynamically
+                    document.querySelectorAll(`.external-apply-btn[data-id="${currentApplyingItem.id}"][data-type="${currentApplyingItem.type}"]`).forEach(el => {
+                        el.setAttribute('disabled', 'true');
+                        el.classList.add('disabled');
+                        el.innerHTML = 'Already Applied';
+                    });
+                    
+                    // If we're inside a details modal, update its button too
+                    const detailBtn = document.getElementById('detailApplyBtn');
+                    if (detailBtn && detailBtn.dataset.id == currentApplyingItem.id && detailBtn.dataset.type == currentApplyingItem.type) {
+                        detailBtn.setAttribute('disabled', 'true');
+                        detailBtn.classList.add('disabled');
+                        detailBtn.innerHTML = 'Already Applied';
+                    }
+
+                    // Add to locally tracked sets so state persists if user opens other modals/views
+                    if (currentApplyingItem.type === 'job') {
+                        if (typeof appliedJobIds !== 'undefined') appliedJobIds.add(parseInt(currentApplyingItem.id));
+                    } else {
+                        if (typeof appliedInternshipIds !== 'undefined') appliedInternshipIds.add(parseInt(currentApplyingItem.id));
+                    }
+                    
+                    // Close the modal
+                    const modalEl = document.getElementById('confirmApplicationModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal?.hide();
+
+                    // Reload after brief delay to update dashboards/pages cleanly
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(body.message || 'Failed to record application.', 'danger');
+                }
+            })
+            .catch(err => {
+                console.error('Error tracking application:', err);
+                showToast('Network error, please try again.', 'danger');
+            })
+            .finally(() => {
+                // Reset loading state
+                btn.removeAttribute('disabled');
+                spinner?.classList.add('d-none');
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

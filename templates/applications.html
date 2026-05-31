@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}My Applications - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1">My Applications</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Audit and track review stages of all your job and internship applications.</p>
+    </div>
+</div>
+
+<!-- Tab Strip -->
+<div class="jobs-tab-strip mb-4">
+    <button class="jobs-tab-btn active" id="tabBtnTracked" onclick="switchAppTab('tracked')">
+        <i class="fa-solid fa-list-check"></i> Tracked Applications
+        <span class="tab-count">{{ tracked_applications | length }}</span>
+    </button>
+    <button class="jobs-tab-btn" id="tabBtnCampus" onclick="switchAppTab('campus')">
+        <i class="fa-solid fa-graduation-cap"></i> Campus Placement Drives
+        <span class="tab-count">{{ applications | length }}</span>
+    </button>
+</div>
+
+<!-- Tab Content: Tracked Applications -->
+<div id="appTabTracked" class="tab-pane-content d-none">
+    <div class="card border-0 p-4 shadow-sm" style="border-radius: var(--radius-lg); background: var(--bg-canvas);">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h2 class="h5 fw-bold text-dark mb-0">Tracked External Applications</h2>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('student.jobs_list') }}" class="btn btn-primary btn-sm py-2 px-3 fw-semibold" style="border-radius: 8px !important;">
+                    <i class="fa-solid fa-briefcase me-1"></i> Browse Jobs
+                </a>
+                <a href="{{ url_for('student.internships') }}" class="btn btn-outline-primary btn-sm py-2 px-3 fw-semibold" style="border-radius: 8px !important;">
+                    <i class="fa-solid fa-laptop-code me-1"></i> Browse Internships
+                </a>
+            </div>
+        </div>
+        
+        {% if tracked_applications %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-canvas);">
+                            <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Company</th>
+                            <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Role Title</th>
+                            <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Type</th>
+                            <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Applied Date</th>
+                            <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                            <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in tracked_applications %}
+                            <tr id="tracked-app-row-{{ app.id }}" style="transition: all 0.3s ease;">
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="navbar-avatar" style="width: 38px; height: 38px; font-weight: bold; border-radius: 8px; background: {{ ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#0ea5e9,#6366f1)','linear-gradient(135deg,#10b981,#0ea5e9)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#a855f7,#ec4899)'] | random }}; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+                                            {{ app.company_name[:2].upper() }}
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block" style="font-size: 0.88rem; color: var(--text-primary) !important;">{{ app.company_name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-dark" style="font-size: 0.88rem; color: var(--text-primary) !important;">{{ app.role_title }}</span>
+                                </td>
+                                <td>
+                                    {% if app.application_type == 'job' %}
+                                        <span class="jtype-badge jtype-fulltime">Job</span>
+                                    {% else %}
+                                        <span class="jtype-badge jtype-internship">Internship</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">{{ app.applied_at.strftime('%d %b %Y') }}</td>
+                                <td>
+                                    <span class="status-badge badge-applied">Applied</span>
+                                </td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-3 py-1.5 px-2.5" onclick="deleteTrackedApp({{ app.id }})" title="Remove tracking">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted border border-dashed rounded-3" style="border-color: var(--border-color) !important;">
+                <div class="mb-3" style="font-size: 2.5rem; color: var(--text-light);">
+                    <i class="fa-regular fa-folder-open"></i>
+                </div>
+                <h3 class="h6 fw-bold text-dark mb-1">No Tracked Applications</h3>
+                <p class="mb-3 small">You have not submitted or confirmed any external applications yet.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('student.jobs_list') }}" class="btn btn-primary btn-sm py-2 px-4">Find Jobs</a>
+                    <a href="{{ url_for('student.internships') }}" class="btn btn-outline-primary btn-sm py-2 px-4">Find Internships</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tab Content: Campus Placement Drives -->
+<div id="appTabCampus" class="tab-pane-content d-none">
+    <div class="row g-4">
+        <!-- Active Applications Overview Grid -->
+        <div class="col-lg-8">
+            <div class="card border-0 p-4 shadow-sm" style="border-radius: var(--radius-lg); background: var(--bg-canvas);">
+                <h2 class="h5 fw-bold text-dark mb-4">Campus Drive Pipelines</h2>
+                
+                {% if applications %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color); background: var(--bg-canvas);">
+                                    <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Position Details</th>
+                                    <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Applied On</th>
+                                    <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Current Phase</th>
+                                    <th style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;" class="text-end">Tracker</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="navbar-avatar" style="width: 40px; height: 40px; font-weight: bold; border-radius: 8px;">
+                                                    {{ app.job.company_name[:2].upper() }}
+                                                </div>
+                                                <div>
+                                                    <span class="fw-bold text-dark d-block" style="font-size: 0.88rem; color: var(--text-primary) !important;">{{ app.job.role }}</span>
+                                                    <span class="text-primary fw-semibold small" style="font-size: 0.75rem;">{{ app.job.company_name }}</span>
+                                                    {% if current_user.resume_filename %}
+                                                        <div class="mt-2">
+                                                            <a href="{{ url_for('student.download_own_resume') }}"
+                                                               target="_blank"
+                                                               class="btn btn-sm btn-outline-primary py-0.5 px-2" style="font-size: 0.7rem;">
+                                                                <i class="fa-solid fa-file-pdf me-1"></i>
+                                                                View Resume
+                                                            </a>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="small text-muted">{{ app.applied_at.strftime('%d %b %Y') }}</td>
+                                        <td>
+                                            {% if app.status == 'Applied' %}
+                                                <span class="status-badge badge-applied">Applied</span>
+                                            {% elif app.status == 'Shortlisted' %}
+                                                <span class="status-badge badge-shortlisted">Shortlisted</span>
+                                            {% elif app.status == 'Interviewing' %}
+                                                <span class="status-badge badge-interviewing">Interviewing</span>
+                                            {% elif app.status in ['Offered', 'Selected'] %}
+                                                <span class="status-badge badge-offered">Offered</span>
+                                            {% elif app.status == 'Rejected' %}
+                                                <span class="status-badge badge-rejected">Rejected</span>
+                                            {% else %}
+                                                <span class="status-badge badge-underreview">Under Review</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ url_for('student.my_applications', active_pipeline=app.id) }}" class="btn btn-secondary btn-sm py-1.5 px-3" style="font-size: 0.78rem !important; border-radius: 8px !important;">
+                                                <i class="fa-solid fa-route me-1"></i> Track Progress
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted border border-dashed rounded-3" style="border-color: var(--border-color) !important;">
+                        <i class="fa-regular fa-folder-open fs-2 mb-3 text-light"></i>
+                        <h3 class="h6 fw-bold text-dark mb-1">No Active Campus Drives</h3>
+                        <p class="mb-3 small">You have not submitted applications to any campus placement drive.</p>
+                        <a href="{{ url_for('student.jobs_list') }}" class="btn btn-primary btn-sm py-2 px-4">Browse Drives</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Active Pipeline Stage Tracker Card (Right Column) -->
+        <div class="col-lg-4">
+            <div class="card border-0 p-4 shadow-sm" style="border-radius: var(--radius-lg); background: var(--bg-canvas);">
+                <h2 class="h5 fw-bold text-dark mb-3">Live Pipeline Tracker</h2>
+                
+                {% if selected_app %}
+                    <div class="text-center pb-4 mb-4 border-bottom" style="border-color: var(--border-color) !important;">
+                        <div class="navbar-avatar mb-3 mx-auto" style="width: 52px; height: 52px; font-weight: bold; border-radius: 12px; font-size: 1.4rem;">
+                            {{ selected_app.job.company_name[:2].upper() }}
+                        </div>
+                        <h3 class="h6 fw-bold text-dark mb-1 fs-5" style="color: var(--text-primary) !important;">{{ selected_app.job.role }}</h3>
+                        <span class="text-primary fw-semibold small d-block mb-1">{{ selected_app.job.company_name }}</span>
+                        <span class="text-muted small d-block" style="font-size: 0.72rem;"><i class="fa-regular fa-clock me-1"></i> Applied on {{ selected_app.applied_at.strftime('%d %b %Y') }}</span>
+                    </div>
+
+                    <!-- Horizontal/Vertical Custom Timeline Tracker -->
+                    <div class="pipeline-timeline">
+                        <!-- Step 1: Applied -->
+                        <div class="pipeline-step completed">
+                            <h4 class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">Application Submitted</h4>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Your credentials have been logged in the application portal.</p>
+                            <span class="text-light" style="font-size: 0.7rem;">Completed</span>
+                        </div>
+
+                        <!-- Step 2: Under Review -->
+                        <div class="pipeline-step {% if selected_app.status in ['Shortlisted', 'Interviewing', 'Offered', 'Selected', 'Rejected', 'Under Review'] %}completed{% else %}active{% endif %}">
+                            <h4 class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">Resume & Profile Review</h4>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Placement coordinator and HR team are reviewing academic records.</p>
+                            <span class="text-light" style="font-size: 0.7rem;">{% if selected_app.status in ['Shortlisted', 'Interviewing', 'Offered', 'Selected', 'Rejected', 'Under Review'] %}Completed{% else %}In Progress{% endif %}</span>
+                        </div>
+
+                        <!-- Step 3: Shortlisted -->
+                        <div class="pipeline-step {% if selected_app.status in ['Shortlisted', 'Interviewing', 'Offered', 'Selected', 'Rejected'] %}completed{% elif selected_app.status == 'Under Review' %}active{% endif %}">
+                            <h4 class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">Profile Shortlisted</h4>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Shortlisted based on CGPA credentials and specialized skillsets.</p>
+                            <span class="text-light" style="font-size: 0.7rem;">{% if selected_app.status in ['Shortlisted', 'Interviewing', 'Offered', 'Selected', 'Rejected'] %}Completed{% elif selected_app.status == 'Under Review' %}In Review{% else %}Pending{% endif %}</span>
+                        </div>
+
+                        <!-- Step 4: Interviewing -->
+                        <div class="pipeline-step {% if selected_app.status in ['Interviewing', 'Offered', 'Selected', 'Rejected'] %}completed{% elif selected_app.status == 'Shortlisted' %}active{% endif %}">
+                            <h4 class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">Technical Interviews</h4>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Interactive coding assessments or HR reviews.</p>
+                            <span class="text-light" style="font-size: 0.7rem;">{% if selected_app.status in ['Interviewing', 'Offered', 'Selected', 'Rejected'] %}Completed{% elif selected_app.status == 'Shortlisted' %}Ready to Schedule{% else %}Pending{% endif %}</span>
+                        </div>
+
+                        <!-- Step 5: Final Selection -->
+                        <div class="pipeline-step {% if selected_app.status in ['Offered', 'Selected', 'Rejected'] %}completed{% elif selected_app.status == 'Interviewing' %}active{% endif %}">
+                            <h4 class="fw-bold text-dark mb-1" style="font-size: 0.88rem;">Final Selection / Offer</h4>
+                            <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                                {% if selected_app.status == 'Rejected' %}
+                                    Application process finalized. Status: Rejected.
+                                {% elif selected_app.status in ['Offered', 'Selected'] %}
+                                    Congratulations! Offer released successfully.
+                                {% else %}
+                                    Final review of interview scores and job allocations.
+                                {% endif %}
+                            </p>
+                            <span class="text-light" style="font-size: 0.7rem;">
+                                {% if selected_app.status == 'Rejected' %}
+                                    Rejected
+                                {% elif selected_app.status in ['Offered', 'Selected'] %}
+                                    Selected!
+                                {% elif selected_app.status == 'Interviewing' %}
+                                    Evaluation
+                                {% else %}
+                                    Pending
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted small text-center py-4 mb-0">Select an application from the table to track pipeline phases in real-time.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchAppTab(tab) {
+    const tabTracked = document.getElementById('appTabTracked');
+    const tabCampus = document.getElementById('appTabCampus');
+    const btnTracked = document.getElementById('tabBtnTracked');
+    const btnCampus = document.getElementById('tabBtnCampus');
+    
+    if (tab === 'tracked') {
+        tabTracked?.classList.remove('d-none');
+        tabCampus?.classList.add('d-none');
+        btnTracked?.classList.add('active');
+        btnCampus?.classList.remove('active');
+        localStorage.setItem('ccAppActiveTab', 'tracked');
+    } else {
+        tabTracked?.classList.add('d-none');
+        tabCampus?.classList.remove('d-none');
+        btnTracked?.classList.remove('active');
+        btnCampus?.classList.add('active');
+        localStorage.setItem('ccAppActiveTab', 'campus');
+    }
+}
+
+function deleteTrackedApp(appId) {
+    if (!confirm('Are you sure you want to stop tracking this application?')) return;
+    
+    const row = document.getElementById(`tracked-app-row-${appId}`);
+    
+    fetch(`/api/applications/${appId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Application tracking removed successfully.', 'success');
+            
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    row.remove();
+                    // Reload window if empty
+                    const tbody = document.querySelector('#appTabTracked tbody');
+                    if (tbody && tbody.children.length === 0) {
+                        window.location.reload();
+                    }
+                }, 300);
+            }
+        } else {
+            showToast(data.message || 'Failed to remove application tracking.', 'danger');
+        }
+    })
+    .catch(err => {
+        console.error('Error removing application:', err);
+        showToast('Network error, please try again.', 'danger');
+    });
+}
+
+// On page load, restore tab selection
+document.addEventListener('DOMContentLoaded', () => {
+    const activeTab = localStorage.getItem('ccAppActiveTab') || 'tracked';
+    switchAppTab(activeTab);
+});
+</script>
+{% endblock %}

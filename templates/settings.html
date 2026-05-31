@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1">Account & Integration Settings</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Update passwords, manage email alert flags, and establish secure external account connections.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: LinkedIn Integration & Email Toggles -->
+    <div class="col-lg-6 col-md-12 d-flex flex-column gap-4">
+        <!-- LinkedIn OAuth Integration Card -->
+        <div class="card border-0 p-4">
+            <h2 class="h5 fw-bold text-dark mb-3"><i class="fa-brands fa-linkedin text-primary me-2"></i> LinkedIn Professional Connection</h2>
+            <p class="text-muted small mb-4">Integrating your LinkedIn profile enables our university placement office to sync your work experiences, certifications, and recommendations directly into the recruitment dashboard.</p>
+            
+            {% if current_user.linkedin_connected %}
+                <div class="p-3 rounded-3 d-flex align-items-center justify-content-between border bg-light" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded-3" style="width: 46px; height: 46px; font-size: 1.5rem;">
+                            <i class="fa-brands fa-linkedin-in"></i>
+                        </div>
+                        <div>
+                            <span class="badge bg-success-subtle text-success small uppercase mb-1 d-inline-block">Linked Professional Account</span>
+                            <h4 class="fw-bold text-dark mb-0 fs-6">{{ current_user.linkedin_name or current_user.name }}</h4>
+                            <a href="{{ current_user.linkedin_profile_url or '#' }}" target="_blank" class="text-muted small text-decoration-none truncate d-block" style="max-width: 180px;">{{ current_user.linkedin_profile_url or 'linkedin.com/in/connected-profile' }}</a>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('linkedin.disconnect') }}" method="POST">
+                        <button type="submit" class="btn btn-danger btn-sm px-3 py-1.5" style="font-size: 0.8rem !important; border-radius: 8px !important;">
+                            Disconnect
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="p-3 rounded-3 text-center border bg-light" style="border-color: var(--border-color) !important;">
+                    <i class="fa-brands fa-linkedin text-light fs-1 mb-2 d-block" style="font-size: 3rem !important;"></i>
+                    <span class="d-block text-muted small mb-3">No professional profiles connected to this student account.</span>
+                    <button type="button" class="btn btn-primary btn-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#linkedinOAuthModal">
+                        Connect to LinkedIn
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Notification Alerts Configuration -->
+        <div class="card border-0 p-4">
+            <h2 class="h5 fw-bold text-dark mb-3"><i class="fa-regular fa-bell text-primary me-2"></i> Placement Alert Configurations</h2>
+            <form action="{{ url_for('student.update_email_preferences') }}" method="POST">
+                <div class="mb-4">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="notifyEmail" name="email_notifications" value="true" {% if current_user.email_notifications %}checked{% endif %}>
+                        <label class="form-check-label fw-bold text-dark" for="notifyEmail" style="font-size: 0.88rem;">Email confirmation digests</label>
+                        <span class="text-muted d-block small" style="font-size: 0.76rem;">Dispatch a confirmation email immediately upon submitting job drive applications.</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-secondary w-100 py-2">
+                    Save Preference Flags
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+<div class="col-lg-6 col-md-12">
+
+    {% if current_user.auth_provider != 'google' %}
+
+    <!-- PASSWORD CHANGE CARD -->
+    <div class="card border-0 p-4 p-md-5">
+
+        <h2 class="h5 fw-bold text-dark mb-4">
+            <i class="fa-solid fa-key text-primary me-2"></i>
+            Update Security Password
+        </h2>
+
+        <form action="{{ url_for('student.update_password') }}" method="POST">
+
+            <div class="mb-3">
+                <label for="current_password"
+                       class="form-label text-muted fw-semibold"
+                       style="font-size: 0.82rem;">
+                    Current Password
+                </label>
+
+                <input type="password"
+                       id="current_password"
+                       name="current_password"
+                       class="form-control"
+                       required
+                       placeholder="••••••••">
+            </div>
+
+            <div class="mb-3">
+                <label for="new_password"
+                       class="form-label text-muted fw-semibold"
+                       style="font-size: 0.82rem;">
+                    New Password
+                </label>
+
+                <input type="password"
+                       id="new_password"
+                       name="new_password"
+                       class="form-control"
+                       required
+                       placeholder="••••••••">
+            </div>
+
+            <div class="mb-4">
+                <label for="confirm_new_password"
+                       class="form-label text-muted fw-semibold"
+                       style="font-size: 0.82rem;">
+                    Confirm New Password
+                </label>
+
+                <input type="password"
+                       id="confirm_new_password"
+                       name="confirm_new_password"
+                       class="form-control"
+                       required
+                       placeholder="••••••••">
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary w-100 py-2.5">
+
+                <i class="fa-solid fa-lock-open me-1"></i>
+                Update Security Credentials
+            </button>
+
+        </form>
+
+    </div>
+
+    {% else %}
+
+    <!-- GOOGLE AUTH CARD -->
+    <div class="card border-0 p-4 p-md-5">
+
+        <h2 class="h5 fw-bold text-dark mb-4">
+            <i class="fa-brands fa-google text-danger me-2"></i>
+            Google Authentication
+        </h2>
+
+        <div class="alert alert-success border-0">
+
+            <div class="d-flex align-items-center gap-3">
+
+                <i class="fa-brands fa-google fs-3 text-danger"></i>
+
+                <div>
+                    <h6 class="fw-bold mb-1">
+                        Google Account Connected
+                    </h6>
+
+                    <p class="mb-0 small">
+                        Your account is securely managed using Google OAuth authentication.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="mt-3">
+
+            <label class="form-label text-muted fw-semibold small">
+                Connected Google Account
+            </label>
+
+            <input type="text"
+                   class="form-control"
+                   value="{{ current_user.email }}"
+                   readonly>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+ </div>
+</div>
+
+<!-- LINKEDIN SIMULATED OAUTH MODAL -->
+<div class="modal fade" id="linkedinOAuthModal" tabindex="-1" aria-labelledby="linkedinOAuthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom bg-light p-3">
+                <div class="d-flex align-items-center gap-2 text-primary">
+                    <i class="fa-brands fa-linkedin fs-4"></i>
+                    <h5 class="modal-title fw-bold" id="linkedinOAuthModalLabel" style="font-family: 'Poppins', sans-serif;">LinkedIn Secure OAuth 2.0</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            
+                <div class="modal-body p-4">
+                    <p class="text-secondary small mb-4">University CareerConnect is requesting permissions to access your LinkedIn professional profile name, bio line, and verified profile vanity link.</p>
+                    
+                    <div class="p-3 border rounded-3 bg-light mb-3 text-center" style="border-color: var(--border-color) !important;">
+                        <span class="d-block text-muted small mb-2">Simulating account authentication as student:</span>
+                        <h4 class="fw-bold text-dark mb-0 fs-6">{{ current_user.name }}</h4>
+                        <span class="text-muted small">{{ current_user.email }}</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="linkedin_profile_url" class="form-label text-muted fw-semibold small">LinkedIn Profile URL</label>
+                        <input type="url" id="linkedin_profile_url" name="profile_url" class="form-control form-control-sm" required value="https://linkedin.com/in/{{ current_user.name.lower().replace(' ', '-') }}-2005">
+                    </div>
+                </div>
+                
+                <div class="modal-footer border-top p-3 d-flex justify-content-between">
+    <button type="button"
+            class="btn btn-secondary py-2"
+            data-bs-dismiss="modal">
+        Cancel
+    </button>
+
+    <a href="{{ url_for('linkedin.linkedin_login') }}"
+       class="btn btn-primary py-2 px-4">
+       Authorize Integration
+    </a>
+</div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1219 @@
+{% extends "base.html" %}
+{% block title %}Explore Jobs - CareerConnect{% endblock %}
+
+{% block content %}
+
+<!-- Page Header Banner -->
+<div class="page-header-banner mb-4" style="padding: 1.4rem 2rem;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.45rem;">Explore Jobs</h1>
+            <p class="mb-0" style="font-size: 0.85rem; color: rgba(255,255,255,0.82);">
+                <span class="fw-bold">{{ live_jobs.total }}</span> live opportunities · Personalized for you
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="view-toggle-group">
+                <button class="view-toggle-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid View">
+                    <i class="fa-solid fa-grip"></i>
+                </button>
+                <button class="view-toggle-btn" id="listViewBtn" onclick="setView('list')" title="List View">
+                    <i class="fa-solid fa-list"></i>
+                </button>
+            </div>
+            <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: rgba(255,255,255,0.18); color: #fff; font-size: 0.78rem; border: 1px solid rgba(255,255,255,0.25);">
+                <i class="fa-solid fa-bolt me-1"></i> Live Feed
+            </span>
+            <div class="d-flex align-items-center gap-2 text-white" id="syncStatusIndicator" style="font-size: 0.78rem; background: rgba(0,0,0,0.25); padding: 0.35rem 0.75rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);">
+                <i class="fa-solid fa-rotate-right animate-spin" id="syncIcon" style="font-size: 0.8rem; color: #10b981; transition: transform 1s ease;"></i>
+                <span id="syncText">Loading sync...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Horizontal Filter Card -->
+<div class="card border-0 mb-4 p-3 shadow-sm" style="border-radius: var(--radius-lg); background: var(--bg-canvas);">
+    <form method="GET" action="{{ url_for('student.jobs_list') }}" id="filterForm">
+        <div class="row g-3">
+            <!-- Row 1: Primary Controls -->
+            <div class="col-md-4">
+                <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>Keyword
+                </label>
+                <input type="text" name="search" class="form-control"
+                       placeholder="Job title, company..."
+                       value="{{ active_filters.search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                    <i class="fa-solid fa-location-dot me-1"></i>Location
+                </label>
+                <input type="text" name="location" class="form-control"
+                       placeholder="City or Remote..."
+                       value="{{ active_filters.location }}">
+            </div>
+            <div class="col-md-3">
+                <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                    <i class="fa-solid fa-code me-1"></i>Role
+                </label>
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    {% for r in ['Software Engineer','Frontend','Backend','Full Stack','AI','Data','DevOps','Mobile','QA','Product','Intern'] %}
+                    <option value="{{ r }}" {% if active_filters.role == r %}selected{% endif %}>{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" style="height: 38px;">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i>Search
+                </button>
+            </div>
+
+            <!-- Row 2: Advanced Controls -->
+            <div class="col-12 mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
+                <div class="row g-3 align-items-center">
+                    <!-- Job Type -->
+                    <div class="col-lg-3 col-md-6">
+                        <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                            <i class="fa-solid fa-tag me-1"></i>Job Type
+                        </label>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            {% for val, label in [('','All'),('Full-Time','Full-Time'),('Internship','Intern'),('Contract','Contract'),('Part-Time','Part-Time')] %}
+                            <label class="filter-pill-label">
+                                <input type="radio" name="job_type" value="{{ val }}" class="d-none"
+                                       {% if active_filters.job_type == val %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                                <span class="filter-pill {% if active_filters.job_type == val %}active{% endif %}" style="font-size: 0.72rem; padding: 0.3rem 0.65rem;">{{ label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Date Posted -->
+                    <div class="col-lg-3 col-md-6">
+                        <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                            <i class="fa-regular fa-calendar me-1"></i>Date Posted
+                        </label>
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            {% for val, label in [('','Any'),('today','Today'),('week','This Week'),('month','This Month')] %}
+                            <label class="filter-pill-label">
+                                <input type="radio" name="date_posted" value="{{ val }}" class="d-none"
+                                       {% if active_filters.date_posted == val %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                                <span class="filter-pill {% if active_filters.date_posted == val %}active{% endif %}" style="font-size: 0.72rem; padding: 0.3rem 0.65rem;">{{ label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Experience -->
+                    <div class="col-lg-2 col-md-4">
+                        <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                            <i class="fa-solid fa-layer-group me-1"></i>Experience
+                        </label>
+                        <select name="experience" class="form-select select-sm" onchange="this.form.submit()">
+                            <option value="">Any Level</option>
+                            {% for exp in ['Fresher','0-1','1-3','3-5','5+'] %}
+                            <option value="{{ exp }}" {% if active_filters.experience == exp %}selected{% endif %}>
+                                {{ exp }} yrs
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Min Salary Dropdown -->
+                    <div class="col-lg-2 col-md-4">
+                        <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                            <i class="fa-solid fa-indian-rupee-sign me-1"></i>Min Salary
+                        </label>
+                        <select name="salary_min" class="form-select select-sm" onchange="this.form.submit()">
+                            <option value="">Any Salary</option>
+                            <option value="300000" {% if active_filters.salary_min == '300000' or active_filters.salary_min == 300000 %}selected{% endif %}>₹3 LPA+</option>
+                            <option value="600000" {% if active_filters.salary_min == '600000' or active_filters.salary_min == 600000 %}selected{% endif %}>₹6 LPA+</option>
+                            <option value="1000000" {% if active_filters.salary_min == '1000000' or active_filters.salary_min == 1000000 %}selected{% endif %}>₹10 LPA+</option>
+                            <option value="1500000" {% if active_filters.salary_min == '1500000' or active_filters.salary_min == 1500000 %}selected{% endif %}>₹15 LPA+</option>
+                            <option value="2000000" {% if active_filters.salary_min == '2000000' or active_filters.salary_min == 2000000 %}selected{% endif %}>₹20 LPA+</option>
+                        </select>
+                    </div>
+
+                    <!-- Skills Dropdown -->
+                    <div class="col-lg-2 col-md-4">
+                        <label class="filter-label mb-1" style="font-size: 0.76rem; font-weight: 600; color: var(--text-muted);">
+                            <i class="fa-solid fa-tags me-1"></i>Preferred Skill
+                        </label>
+                        <select name="skill" class="form-select select-sm" onchange="this.form.submit()">
+                            <option value="">Any Skill</option>
+                            {% for skill in skill_options %}
+                            <option value="{{ skill }}" {% if active_filters.skill == skill %}selected{% endif %}>{{ skill }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <!-- Mini actions: alert link, clear visual filter -->
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2" style="border-top: 1px dashed var(--border-color);">
+                    <button type="button" class="btn btn-link btn-sm text-decoration-none fw-semibold p-0" onclick="openAlertModal()" style="font-size: 0.78rem; color: var(--primary);">
+                        <i class="fa-solid fa-bell me-1"></i>Set Job Alert
+                    </button>
+                    <div id="activeAlertsContainer" class="d-flex gap-1 flex-wrap"></div>
+                    <a href="{{ url_for('student.jobs_list') }}" class="text-decoration-none fw-semibold small text-danger">
+                        ✕ Clear Filters
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Tab Strip -->
+<div class="jobs-tab-strip mb-4">
+    <button class="jobs-tab-btn active" data-tab="all" onclick="switchTab('all', this)">
+        <i class="fa-solid fa-briefcase"></i> All Jobs
+        <span class="tab-count">{{ live_jobs.total }}</span>
+    </button>
+    <button class="jobs-tab-btn" data-tab="matches" onclick="switchTab('matches', this)">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Best Matches
+        <span class="tab-count" id="matchCountBadge">—</span>
+    </button>
+    <button class="jobs-tab-btn" data-tab="saved" onclick="switchTab('saved', this)">
+        <i class="fa-solid fa-bookmark"></i> Saved
+        <span class="tab-count">{{ saved_job_ids | length }}</span>
+    </button>
+    <button class="jobs-tab-btn" data-tab="recent" onclick="switchTab('recent', this)">
+        <i class="fa-regular fa-clock"></i> Recently Viewed
+    </button>
+</div>
+
+<div class="row g-4">
+
+    <!-- ===== FULL WIDTH: Jobs Area ===== -->
+    <div class="col-12">
+
+        <!-- Active Filter Tags -->
+        {% set has_filters = active_filters.search or active_filters.location or active_filters.role or active_filters.job_type or active_filters.experience or active_filters.date_posted or active_filters.salary_min or active_filters.skill %}
+        {% if has_filters %}
+        <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+            <span class="text-muted fw-semibold" style="font-size: 0.78rem;">Active:</span>
+            {% if active_filters.search %}<span class="active-filter-tag">🔍 {{ active_filters.search }}</span>{% endif %}
+            {% if active_filters.location %}<span class="active-filter-tag">📍 {{ active_filters.location }}</span>{% endif %}
+            {% if active_filters.role %}<span class="active-filter-tag">{{ active_filters.role }}</span>{% endif %}
+            {% if active_filters.job_type %}<span class="active-filter-tag">{{ active_filters.job_type }}</span>{% endif %}
+            {% if active_filters.experience %}<span class="active-filter-tag">{{ active_filters.experience }} yrs</span>{% endif %}
+            {% if active_filters.date_posted %}<span class="active-filter-tag">{{ active_filters.date_posted | replace('today','Today') | replace('week','This Week') | replace('month','This Month') }}</span>{% endif %}
+            {% if active_filters.salary_min %}<span class="active-filter-tag">₹{{ (active_filters.salary_min | int / 100000) | round(1) }}L+</span>{% endif %}
+            {% if active_filters.skill %}<span class="active-filter-tag">🛠 {{ active_filters.skill }}</span>{% endif %}
+            <a href="{{ url_for('student.jobs_list') }}" class="text-decoration-none fw-semibold ms-1" style="font-size: 0.78rem; color: var(--danger);">✕ Clear All</a>
+        </div>
+        {% endif %}
+
+        <!-- Results count -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="text-muted mb-0" style="font-size: 0.82rem;">
+                Showing <strong class="text-dark">{{ live_jobs.items | length }}</strong> of
+                <strong class="text-dark">{{ live_jobs.total }}</strong> jobs
+                {% if current_user.skills %} · sorted by best match{% endif %}
+            </p>
+        </div>
+
+        <!-- ===== TAB: ALL JOBS ===== -->
+        <div class="tab-pane-content" id="tab-all">
+            {% if live_jobs.items %}
+            <div id="jobsGrid" class="row g-3">
+                {% for job in live_jobs.items %}
+
+                {# ---- GRID CARD ---- #}
+                <div class="col-md-6 job-grid-col">
+                    <div class="job-card h-100" data-job-id="{{ job.id }}" data-job-title="{{ job.title }}" data-job-company="{{ job.company }}" data-job-location="{{ job.location or 'Remote' }}" data-job-salary="{% if job.salary_min and job.salary_max %}₹{{ (job.salary_min/100000)|round(1) }}L–{{ (job.salary_max/100000)|round(1) }}L{% else %}TBD{% endif %}" data-job-type="{{ job.job_type or 'Full-Time' }}" data-job-exp="{{ job.experience_required or 'Any' }}" data-job-link="{{ job.apply_link }}" data-job-match="{{ job.match_score }}" data-job-desc="{{ job.description | replace('"', '&quot;') if job.description else 'No description available.' }}" data-job-skills="{{ job.skill_tags | join(',') if job.skill_tags else '' }}">
+
+                        <!-- Top: Company + Type Badge -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                <div class="job-company-logo" style="background: {{ ['linear-gradient(135deg,#6366f1,#8b5cf6)','linear-gradient(135deg,#0ea5e9,#6366f1)','linear-gradient(135deg,#10b981,#0ea5e9)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#a855f7,#ec4899)'] | random }}; flex-shrink:0;">
+                                    {{ job.company[0] | upper if job.company else '?' }}
+                                </div>
+                                <div style="min-width:0; overflow:hidden;">
+                                    <div class="fw-bold text-truncate" style="font-size: 0.88rem; color: var(--text-primary);">{{ job.company }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">Verified Employer</div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                                <span class="jtype-badge jtype-{{ (job.job_type or 'Full-Time') | lower | replace('-','') | replace(' ','') }}">
+                                    {{ job.job_type or 'Full-Time' }}
+                                </span>
+                                <!-- Compare checkbox -->
+                                <label class="compare-checkbox-label" title="Compare this job">
+                                    <input type="checkbox" class="compare-check" data-job-id="{{ job.id }}" onchange="toggleCompare(this)">
+                                    <span class="compare-check-icon"><i class="fa-solid fa-code-compare"></i></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Job Title -->
+                        <h4 class="fw-bold mb-2" style="font-size: 1.02rem; color: var(--text-primary); line-height: 1.3;">
+                            {{ job.title }}
+                        </h4>
+
+                        <!-- Meta Pills -->
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="job-meta-pill">
+                                <i class="fa-solid fa-location-dot" style="color: var(--danger);"></i>
+                                {{ job.location or 'Remote' }}
+                            </span>
+                            <span class="job-meta-pill salary-pill">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                {% if job.salary_min and job.salary_max %}
+                                    {{ (job.salary_min / 100000) | round(1) }}L – {{ (job.salary_max / 100000) | round(1) }}L
+                                {% elif job.salary_min %}
+                                    {{ (job.salary_min / 100000) | round(1) }}L+
+                                {% else %}
+                                    Not Disclosed
+                                {% endif %}
+                            </span>
+                            {% if job.experience_required and job.experience_required not in ['Any', '', None] %}
+                            <span class="job-meta-pill">
+                                <i class="fa-solid fa-briefcase" style="color: var(--info);"></i>
+                                {{ job.experience_required }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <p class="text-muted mb-3" style="font-size: 0.81rem; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ job.description[:180] if job.description else 'No description available.' }}
+                        </p>
+
+                        <!-- Skill Tags -->
+                        {% if job.skill_tags %}
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% for tag in job.skill_tags[:4] %}
+                            <span class="skill-tag" style="font-size: 0.68rem; padding: 0.15rem 0.5rem;">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Footer: Date + Match + Actions -->
+                        <div class="d-flex justify-content-between align-items-center pt-2 mt-auto"
+                             style="border-top: 1px solid var(--border-color);">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                {% set days = (now - job.updated_at).days %}
+                                {% if days == 0 %}
+                                <span class="posted-badge posted-today"><i class="fa-solid fa-circle" style="font-size:0.45rem;"></i> Today</span>
+                                {% elif days <= 3 %}
+                                <span class="posted-badge posted-recent">{{ days }}d ago</span>
+                                {% else %}
+                                <span class="posted-badge posted-old">{{ days }}d ago</span>
+                                {% endif %}
+
+                                {% if current_user.skills %}
+                                    {% if job.match_score >= 70 %}
+                                    <span class="match-badge-card match-high">
+                                        <i class="fa-solid fa-bolt"></i> {{ job.match_score }}% Match
+                                    </span>
+                                    {% elif job.match_score >= 35 %}
+                                    <span class="match-badge-card match-mid">{{ job.match_score }}% Match</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <form action="{{ url_for('student.save_job', job_id=job.id) }}" method="POST" style="margin:0;">
+                                    <button type="submit"
+                                            class="bookmark-btn {% if job.id in saved_job_ids %}bookmarked{% endif %}"
+                                            title="{% if job.id in saved_job_ids %}Unsave{% else %}Save Job{% endif %}">
+                                        <i class="fa-{% if job.id in saved_job_ids %}solid{% else %}regular{% endif %} fa-bookmark"></i>
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-outline-primary btn-sm px-2 fw-semibold detail-btn"
+                                        onclick="openJobDetail(this.closest('.job-card'))" title="View full details">
+                                    <i class="fa-solid fa-eye" style="font-size:0.72rem;"></i>
+                                </button>
+                                {% if job.id in applied_job_ids %}
+                                    <button class="btn btn-secondary btn-sm px-3 fw-semibold" disabled>Already Applied</button>
+                                {% else %}
+                                    <a href="{{ job.apply_link }}" target="_blank" rel="noopener"
+                                       class="btn btn-primary btn-sm px-3 fw-semibold apply-btn-quick external-apply-btn"
+                                       data-id="{{ job.id }}"
+                                       data-company="{{ job.company }}"
+                                       data-title="{{ job.title }}"
+                                       data-type="job"
+                                       onclick="trackView({{ job.id }}, '{{ job.title | replace("'","") }}', '{{ job.company | replace("'","") }}')">
+                                        <i class="fa-solid fa-bolt me-1" style="font-size:0.6rem;"></i>Quick Apply
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# ---- LIST ROW ---- #}
+                <div class="col-12 job-list-col d-none">
+                    <div class="job-list-row">
+                        <div class="job-company-logo-sm" style="background: var(--primary-gradient); flex-shrink:0;">
+                            {{ job.company[0] | upper if job.company else '?' }}
+                        </div>
+                        <div class="flex-grow-1" style="min-width:0;">
+                            <div class="fw-bold text-truncate" style="font-size: 0.9rem; color: var(--text-primary);">{{ job.title }}</div>
+                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">{{ job.company }}</div>
+                        </div>
+                        <div class="d-none d-md-flex align-items-center gap-1 flex-shrink-0" style="min-width:110px;">
+                            <i class="fa-solid fa-location-dot text-danger" style="font-size:0.7rem;"></i>
+                            <span class="text-muted text-truncate" style="font-size:0.78rem; max-width:90px;">{{ job.location }}</span>
+                        </div>
+                        <div class="d-none d-lg-block flex-shrink-0" style="min-width:100px;">
+                            <span class="fw-semibold" style="font-size:0.8rem; color: var(--success);">
+                                {% if job.salary_min and job.salary_max %}
+                                    ₹{{ (job.salary_min/100000)|round(1) }}L–{{ (job.salary_max/100000)|round(1) }}L
+                                {% else %}TBD{% endif %}
+                            </span>
+                        </div>
+                        <span class="jtype-badge jtype-{{ (job.job_type or 'Full-Time') | lower | replace('-','') | replace(' ','') }} flex-shrink-0">
+                            {{ job.job_type or 'Full-Time' }}
+                        </span>
+                        {% set days = (now - job.updated_at).days %}
+                        <span class="text-muted flex-shrink-0" style="font-size:0.74rem; min-width:48px; text-align:right;">
+                            {% if days == 0 %}Today{% else %}{{ days }}d ago{% endif %}
+                        </span>
+                        {% if current_user.skills and job.match_score >= 35 %}
+                        <span class="match-badge-card {% if job.match_score >= 70 %}match-high{% else %}match-mid{% endif %} flex-shrink-0">
+                            {{ job.match_score }}%
+                        </span>
+                        {% endif %}
+                        <div class="d-flex gap-1 flex-shrink-0">
+                            <form action="{{ url_for('student.save_job', job_id=job.id) }}" method="POST" style="margin:0;">
+                                <button type="submit" class="bookmark-btn {% if job.id in saved_job_ids %}bookmarked{% endif %}">
+                                    <i class="fa-{% if job.id in saved_job_ids %}solid{% else %}regular{% endif %} fa-bookmark"></i>
+                                </button>
+                            </form>
+                            {% if job.id in applied_job_ids %}
+                                <button class="btn btn-secondary btn-sm px-3 fw-semibold" disabled>Already Applied</button>
+                            {% else %}
+                                <a href="{{ job.apply_link }}" target="_blank" rel="noopener"
+                                   class="btn btn-primary btn-sm px-3 fw-semibold external-apply-btn"
+                                   data-id="{{ job.id }}"
+                                   data-company="{{ job.company }}"
+                                   data-title="{{ job.title }}"
+                                   data-type="job"
+                                   onclick="trackView({{ job.id }}, '{{ job.title | replace("'","") }}', '{{ job.company | replace("'","") }}')">
+                                    Apply
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </div><!-- /jobsGrid -->
+
+            <!-- Pagination -->
+            {% if live_jobs.pages > 1 %}
+            <nav class="mt-5" aria-label="Job pages">
+                <ul class="pagination justify-content-center gap-1 flex-wrap">
+                    {% if live_jobs.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link rounded-3"
+                           href="{{ url_for('student.jobs_list', page=live_jobs.prev_num,
+                                search=active_filters.search, location=active_filters.location,
+                                role=active_filters.role, job_type=active_filters.job_type,
+                                experience=active_filters.experience, date_posted=active_filters.date_posted,
+                                salary_min=active_filters.salary_min, salary_max=active_filters.salary_max,
+                                skill=active_filters.skill) }}">
+                            <i class="fa-solid fa-chevron-left" style="font-size:0.72rem;"></i> Prev
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in live_jobs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                        <li class="page-item {% if page_num == live_jobs.page %}active{% endif %}">
+                            <a class="page-link rounded-3"
+                               href="{{ url_for('student.jobs_list', page=page_num,
+                                    search=active_filters.search, location=active_filters.location,
+                                    role=active_filters.role, job_type=active_filters.job_type,
+                                    experience=active_filters.experience, date_posted=active_filters.date_posted,
+                                    salary_min=active_filters.salary_min, salary_max=active_filters.salary_max,
+                                    skill=active_filters.skill) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if live_jobs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link rounded-3"
+                           href="{{ url_for('student.jobs_list', page=live_jobs.next_num,
+                                search=active_filters.search, location=active_filters.location,
+                                role=active_filters.role, job_type=active_filters.job_type,
+                                experience=active_filters.experience, date_posted=active_filters.date_posted,
+                                salary_min=active_filters.salary_min, salary_max=active_filters.salary_max,
+                                skill=active_filters.skill) }}">
+                            Next <i class="fa-solid fa-chevron-right" style="font-size:0.72rem;"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 3rem; color: var(--text-light);">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">No Jobs Found</h5>
+                <p class="text-muted mb-3">Try adjusting your filters or search terms.</p>
+                <a href="{{ url_for('student.jobs_list') }}" class="btn btn-outline-primary">Clear Filters</a>
+            </div>
+            {% endif %}
+        </div><!-- /tab-all -->
+
+        <!-- ===== TAB: BEST MATCHES ===== -->
+        <div class="tab-pane-content d-none" id="tab-matches">
+            {% set matched_jobs = live_jobs.items | selectattr('match_score', 'ge', 30) | list %}
+            {% if matched_jobs %}
+            <div class="d-flex align-items-center gap-2 mb-4 p-3 rounded-3"
+                 style="background: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(168,85,247,0.07)); border: 1px solid rgba(99,102,241,0.18);">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i>
+                <span class="fw-semibold" style="font-size: 0.85rem; color: var(--text-primary);">
+                    {{ matched_jobs | length }} jobs match your skills — sorted by best fit
+                </span>
+            </div>
+            <div class="row g-3">
+                {% for job in live_jobs.items | sort(attribute='match_score', reverse=True) %}
+                {% if job.match_score >= 30 %}
+                <div class="col-md-6">
+                    <div class="job-card h-100" style="border-color: rgba(99,102,241,0.22);">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="job-company-logo" style="background: var(--primary-gradient);">
+                                    {{ job.company[0] | upper if job.company else '?' }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="font-size: 0.88rem;">{{ job.company }}</div>
+                                    <span class="jtype-badge jtype-{{ (job.job_type or 'Full-Time') | lower | replace('-','') | replace(' ','') }}">{{ job.job_type or 'Full-Time' }}</span>
+                                </div>
+                            </div>
+                            <span class="match-badge-card {% if job.match_score >= 70 %}match-high{% else %}match-mid{% endif %}">
+                                <i class="fa-solid fa-bolt"></i> {{ job.match_score }}% Match
+                            </span>
+                        </div>
+                        <h4 class="fw-bold mb-2" style="font-size: 1rem;">{{ job.title }}</h4>
+                        {% if job.skill_tags %}
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% for tag in job.skill_tags[:5] %}
+                            <span class="skill-tag" style="font-size:0.68rem; padding: 0.15rem 0.5rem;">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center pt-2 mt-auto"
+                             style="border-top: 1px solid var(--border-color);">
+                            <span class="fw-semibold" style="color: var(--success); font-size: 0.82rem;">
+                                {% if job.salary_min and job.salary_max %}
+                                    ₹{{ (job.salary_min/100000)|round(1) }}L–{{ (job.salary_max/100000)|round(1) }}L
+                                {% else %}Salary TBD{% endif %}
+                            </span>
+                            <div class="d-flex gap-2">
+                                <form action="{{ url_for('student.save_job', job_id=job.id) }}" method="POST" style="margin:0;">
+                                    <button type="submit" class="bookmark-btn {% if job.id in saved_job_ids %}bookmarked{% endif %}">
+                                        <i class="fa-{% if job.id in saved_job_ids %}solid{% else %}regular{% endif %} fa-bookmark"></i>
+                                    </button>
+                                </form>
+                                {% if job.id in applied_job_ids %}
+                                    <button class="btn btn-secondary btn-sm px-3" disabled>Already Applied</button>
+                                {% else %}
+                                    <a href="{{ job.apply_link }}" target="_blank" class="btn btn-primary btn-sm px-3 external-apply-btn"
+                                       data-id="{{ job.id }}"
+                                       data-company="{{ job.company }}"
+                                       data-title="{{ job.title }}"
+                                       data-type="job">Apply Now</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 3rem; color: var(--text-light);">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h5 class="fw-bold">No Strong Matches Yet</h5>
+                <p class="text-muted mb-3">Add skills to your profile so we can match you with the right jobs.</p>
+                <a href="{{ url_for('student.profile') }}" class="btn btn-primary">Update Profile Skills</a>
+            </div>
+            {% endif %}
+        </div><!-- /tab-matches -->
+
+        <!-- ===== TAB: SAVED ===== -->
+        <div class="tab-pane-content d-none" id="tab-saved">
+            {% set saved_on_page = [] %}
+            {% for job in live_jobs.items %}{% if job.id in saved_job_ids %}{% if saved_on_page.append(job) %}{% endif %}{% endif %}{% endfor %}
+            {% if saved_on_page %}
+            <div class="row g-3">
+                {% for job in saved_on_page %}
+                <div class="col-md-6">
+                    <div class="job-card h-100" style="border-color: rgba(99,102,241,0.2);">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="job-company-logo" style="background: var(--primary-gradient);">
+                                    {{ job.company[0] | upper if job.company else '?' }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="font-size: 0.88rem;">{{ job.company }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <i class="fa-solid fa-bookmark text-primary" style="font-size:0.65rem;"></i> Saved
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="jtype-badge jtype-{{ (job.job_type or 'Full-Time') | lower | replace('-','') | replace(' ','') }}">{{ job.job_type or 'Full-Time' }}</span>
+                        </div>
+                        <h4 class="fw-bold mb-2" style="font-size: 1rem;">{{ job.title }}</h4>
+                        <div class="job-meta-pill mb-3">
+                            <i class="fa-solid fa-location-dot text-danger"></i> {{ job.location or 'Remote' }}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 mt-auto"
+                             style="border-top: 1px solid var(--border-color);">
+                            <span class="fw-semibold" style="color: var(--success); font-size: 0.82rem;">
+                                {% if job.salary_min and job.salary_max %}
+                                    ₹{{ (job.salary_min/100000)|round(1) }}L–{{ (job.salary_max/100000)|round(1) }}L
+                                {% else %}Salary TBD{% endif %}
+                            </span>
+                            <div class="d-flex gap-2">
+                                <form action="{{ url_for('student.save_job', job_id=job.id) }}" method="POST" style="margin:0;">
+                                    <button type="submit" class="bookmark-btn bookmarked">
+                                        <i class="fa-solid fa-bookmark"></i>
+                                    </button>
+                                </form>
+                                {% if job.id in applied_job_ids %}
+                                    <button class="btn btn-secondary btn-sm px-3" disabled>Already Applied</button>
+                                {% else %}
+                                    <a href="{{ job.apply_link }}" target="_blank" class="btn btn-primary btn-sm px-3 external-apply-btn"
+                                       data-id="{{ job.id }}"
+                                       data-company="{{ job.company }}"
+                                       data-title="{{ job.title }}"
+                                       data-type="job">Apply Now</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3" style="font-size: 3rem; color: var(--text-light);">
+                    <i class="fa-regular fa-bookmark"></i>
+                </div>
+                <h5 class="fw-bold">No Saved Jobs on This Page</h5>
+                <p class="text-muted mb-3">Bookmark jobs using the <i class="fa-regular fa-bookmark"></i> icon to review them later.</p>
+                <a href="{{ url_for('student.saved_jobs') }}" class="btn btn-outline-primary">View All Saved Jobs</a>
+            </div>
+            {% endif %}
+        </div><!-- /tab-saved -->
+
+        <!-- ===== TAB: RECENTLY VIEWED ===== -->
+        <div class="tab-pane-content d-none" id="tab-recent">
+            <div id="recentlyViewedList" class="row g-3"></div>
+            <div id="recentlyViewedEmpty" class="text-center py-5 d-none">
+                <div class="mb-3" style="font-size: 3rem; color: var(--text-light);">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+                <h5 class="fw-bold">No Recently Viewed Jobs</h5>
+                <p class="text-muted">Jobs you click "Apply" on will appear here.</p>
+            </div>
+        </div><!-- /tab-recent -->
+
+    </div><!-- /col-12 -->
+</div><!-- /row -->
+
+<!-- ===== COMPARE FLOATING BAR ===== -->
+<div class="compare-floating-bar d-none" id="compareBar">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-code-compare" style="color: var(--primary);"></i>
+            <span class="fw-bold" style="font-size: 0.85rem;">Compare Jobs</span>
+            <span id="compareCount" class="badge rounded-pill" style="background: var(--primary-gradient); color: #fff; font-size: 0.72rem;">0</span>
+            <span class="text-muted" style="font-size: 0.75rem;">selected (max 3)</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-secondary" onclick="clearCompare()">Clear</button>
+            <button class="btn btn-sm btn-primary" onclick="openCompareModal()">Compare Now</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== COMPARE MODAL ===== -->
+<div class="modal fade" id="compareModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-code-compare me-2" style="color: var(--primary);"></i>Compare Jobs
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0" id="compareTable">
+                        <thead>
+                            <tr style="background: var(--bg-canvas);">
+                                <th style="width:120px; font-size:0.75rem;">ATTRIBUTE</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compareTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== JOB ALERT MODAL ===== -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-bell me-2" style="color: var(--primary);"></i>Set Job Alert
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="font-size: 0.85rem;">Get notified when new jobs match your criteria. Alerts are saved locally and checked each time you visit.</p>
+                <div class="d-flex flex-column gap-3">
+                    <div>
+                        <label class="filter-label">Keywords / Job Title</label>
+                        <input type="text" id="alertKeyword" class="form-control" placeholder="e.g. Python Developer">
+                    </div>
+                    <div>
+                        <label class="filter-label">Location</label>
+                        <input type="text" id="alertLocation" class="form-control" placeholder="e.g. Bangalore, Remote">
+                    </div>
+                    <div>
+                        <label class="filter-label">Skill</label>
+                        <select id="alertSkill" class="form-select">
+                            <option value="">Any Skill</option>
+                            {% for skill in skill_options %}
+                            <option value="{{ skill }}">{{ skill }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveJobAlert()">
+                    <i class="fa-solid fa-bell me-2"></i>Create Alert
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== JOB DETAIL MODAL ===== -->
+<div class="modal fade" id="jobDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius: var(--radius-lg); overflow: hidden;">
+            <!-- Gradient Header -->
+            <div class="modal-header border-0 text-white" style="background: var(--primary-gradient); padding: 1.5rem 2rem;">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div id="detailLogo" class="job-company-logo" style="background: rgba(255,255,255,0.2); width:50px; height:50px; font-size:1.2rem;"></div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" id="detailTitle" style="font-size:1.15rem;"></h5>
+                            <span id="detailCompany" style="font-size:0.88rem; opacity:0.9;"></span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem 2rem;">
+                <!-- Key Info Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-info-card">
+                            <div class="detail-info-icon" style="color: var(--danger);">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div class="detail-info-label">Location</div>
+                            <div class="detail-info-value" id="detailLocation"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-info-card">
+                            <div class="detail-info-icon" style="color: var(--success);">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                            </div>
+                            <div class="detail-info-label">Salary</div>
+                            <div class="detail-info-value" id="detailSalary"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-info-card">
+                            <div class="detail-info-icon" style="color: var(--primary);">
+                                <i class="fa-solid fa-tag"></i>
+                            </div>
+                            <div class="detail-info-label">Job Type</div>
+                            <div class="detail-info-value" id="detailType"></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="detail-info-card">
+                            <div class="detail-info-icon" style="color: var(--info);">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <div class="detail-info-label">Experience</div>
+                            <div class="detail-info-value" id="detailExp"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match Score -->
+                <div id="detailMatchWrap" class="mb-4 d-none">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(168,85,247,0.06)); border:1px solid rgba(99,102,241,0.15);">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle fw-bold" id="detailMatchCircle"
+                             style="width:48px; height:48px; font-size:0.9rem; flex-shrink:0;"></div>
+                        <div>
+                            <div class="fw-bold" style="font-size:0.88rem; color:var(--text-primary);">Profile Match Score</div>
+                            <div class="text-muted" style="font-size:0.78rem;">Based on your skills and this job's requirements</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Required -->
+                <div id="detailSkillsWrap" class="mb-4 d-none">
+                    <h6 class="fw-bold mb-2" style="font-size:0.85rem; color:var(--text-primary);"><i class="fa-solid fa-tags me-2" style="color:var(--primary);"></i>Skills Required</h6>
+                    <div id="detailSkills" class="d-flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Full Description -->
+                <div class="mb-3">
+                    <h6 class="fw-bold mb-2" style="font-size:0.85rem; color:var(--text-primary);"><i class="fa-solid fa-file-lines me-2" style="color:var(--primary);"></i>Job Description</h6>
+                    <div id="detailDescription" class="text-muted" style="font-size:0.85rem; line-height:1.75; white-space: pre-line;"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0" style="padding: 1rem 2rem 1.5rem;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="detailApplyBtn" target="_blank" class="btn btn-primary fw-semibold px-4">
+                    <i class="fa-solid fa-bolt me-2"></i>Apply Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const appliedJobIds = new Set({{ applied_job_ids | list | tojson if applied_job_ids else '[]' }});
+/* ============================
+   VIEW TOGGLE (Grid / List)
+   ============================ */
+function setView(mode) {
+    const gridCols = document.querySelectorAll('.job-grid-col');
+    const listCols = document.querySelectorAll('.job-list-col');
+    const gridBtn  = document.getElementById('gridViewBtn');
+    const listBtn  = document.getElementById('listViewBtn');
+
+    if (mode === 'list') {
+        gridCols.forEach(el => el.classList.add('d-none'));
+        listCols.forEach(el => el.classList.remove('d-none'));
+        gridBtn.classList.remove('active');
+        listBtn.classList.add('active');
+    } else {
+        gridCols.forEach(el => el.classList.remove('d-none'));
+        listCols.forEach(el => el.classList.add('d-none'));
+        gridBtn.classList.add('active');
+        listBtn.classList.remove('active');
+    }
+    localStorage.setItem('ccJobsView', mode);
+}
+
+/* ============================
+   TAB SWITCHING
+   ============================ */
+function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-pane-content').forEach(p => p.classList.add('d-none'));
+    document.querySelectorAll('.jobs-tab-btn').forEach(b => b.classList.remove('active'));
+    const pane = document.getElementById('tab-' + tab);
+    if (pane) pane.classList.remove('d-none');
+    btn.classList.add('active');
+    localStorage.setItem('ccJobsTab', tab);
+    if (tab === 'recent') renderRecentlyViewed();
+}
+
+/* ============================
+   RECENTLY VIEWED
+   ============================ */
+function trackView(id, title, company) {
+    let views = JSON.parse(localStorage.getItem('ccRecentJobs') || '[]');
+    views = views.filter(j => j.id !== id);
+    views.unshift({ id, title, company, ts: Date.now() });
+    localStorage.setItem('ccRecentJobs', JSON.stringify(views.slice(0, 8)));
+}
+
+function renderRecentlyViewed() {
+    const views = JSON.parse(localStorage.getItem('ccRecentJobs') || '[]');
+    const list  = document.getElementById('recentlyViewedList');
+    const empty = document.getElementById('recentlyViewedEmpty');
+    if (!list) return;
+    if (!views.length) {
+        list.innerHTML = '';
+        if (empty) empty.classList.remove('d-none');
+        return;
+    }
+    if (empty) empty.classList.add('d-none');
+    const gradients = [
+        'linear-gradient(135deg,#6366f1,#8b5cf6)',
+        'linear-gradient(135deg,#0ea5e9,#6366f1)',
+        'linear-gradient(135deg,#10b981,#0ea5e9)',
+        'linear-gradient(135deg,#f59e0b,#ef4444)'
+    ];
+    list.innerHTML = views.map((j, i) => {
+        const mins = Math.max(0, Math.round((Date.now() - j.ts) / 60000));
+        const timeStr = mins < 1 ? 'Just now' : mins < 60 ? mins + ' min ago' : Math.round(mins/60) + ' hr ago';
+        return `
+        <div class="col-md-6">
+            <div class="job-card h-100">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="job-company-logo" style="background:${gradients[i % gradients.length]}; flex-shrink:0; font-size:1rem;">
+                        ${(j.company?.[0] || '?').toUpperCase()}
+                    </div>
+                    <div style="min-width:0;">
+                        <div class="fw-bold text-truncate" style="font-size:0.9rem;">${j.title}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.75rem;">${j.company}</div>
+                    </div>
+                </div>
+                <div class="posted-badge posted-recent" style="font-size:0.72rem;">
+                    <i class="fa-regular fa-clock me-1"></i>${timeStr}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/* ============================
+   SALARY PRESETS
+   ============================ */
+function setSalaryPreset(min, max) {
+    const form = document.getElementById('filterForm');
+    if (!form) return;
+    form.querySelector('[name="salary_min"]').value = min;
+    form.querySelector('[name="salary_max"]').value = max;
+    form.submit();
+}
+
+/* ============================
+   INIT ON LOAD
+   ============================ */
+document.addEventListener('DOMContentLoaded', () => {
+    // Restore view mode
+    const savedView = localStorage.getItem('ccJobsView');
+    if (savedView === 'list') setView('list');
+
+    // Restore active tab
+    const savedTab = localStorage.getItem('ccJobsTab');
+    if (savedTab) {
+        const btn = document.querySelector(`[data-tab="${savedTab}"]`);
+        if (btn) switchTab(savedTab, btn);
+    }
+
+    // Count match score badges and update tab badge
+    const matchCards = document.querySelectorAll('#tab-matches .job-card');
+    const badge = document.getElementById('matchCountBadge');
+    if (badge && matchCards.length > 0) badge.textContent = matchCards.length;
+
+    // Sync filter pill visual state
+    document.querySelectorAll('.filter-pill-label input').forEach(input => {
+        input.addEventListener('change', () => {
+            document.querySelectorAll(`input[name="${input.name}"]`).forEach(i => {
+                i.nextElementSibling?.classList.remove('active');
+            });
+            input.nextElementSibling?.classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.skill-chip-label input').forEach(input => {
+        input.addEventListener('change', () => {
+            document.querySelectorAll('.skill-chip').forEach(c => c.classList.remove('active'));
+            input.nextElementSibling?.classList.add('active');
+        });
+    });
+
+    // Freshness status fetch
+    function updateSyncStatus() {
+        const syncIcon = document.getElementById('syncIcon');
+        const syncText = document.getElementById('syncText');
+        if (!syncText) return;
+
+        fetch('/api/system/sync-status')
+            .then(res => res.json())
+            .then(data => {
+                if (data.lastJobsSyncTime) {
+                    const lastDate = new Date(data.lastJobsSyncTime);
+                    const formattedLast = lastDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    
+                    let nextStr = '';
+                    if (data.nextJobsSyncTime) {
+                        const nextDate = new Date(data.nextJobsSyncTime);
+                        nextStr = ' · Next: ' + nextDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    }
+                    syncText.textContent = `Synced: ${formattedLast}${nextStr}`;
+                } else {
+                    syncText.textContent = 'Never synced';
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching sync status:', err);
+                syncText.textContent = 'Sync offline';
+                if (syncIcon) syncIcon.className = 'fa-solid fa-circle-exclamation text-warning';
+            });
+    }
+    updateSyncStatus();
+    setInterval(updateSyncStatus, 30000);
+});
+
+/* ============================
+   COMPARE JOBS
+   ============================ */
+let compareList = [];
+
+function toggleCompare(checkbox) {
+    const jobId = checkbox.dataset.jobId;
+    if (checkbox.checked) {
+        if (compareList.length >= 3) {
+            checkbox.checked = false;
+            showToast('You can compare up to 3 jobs at a time.', 'warning');
+            return;
+        }
+        const card = checkbox.closest('.job-card');
+        compareList.push({
+            id: jobId,
+            title: card.dataset.jobTitle,
+            company: card.dataset.jobCompany,
+            location: card.dataset.jobLocation,
+            salary: card.dataset.jobSalary,
+            type: card.dataset.jobType,
+            exp: card.dataset.jobExp,
+            link: card.dataset.jobLink,
+            match: card.dataset.jobMatch
+        });
+    } else {
+        compareList = compareList.filter(j => j.id !== jobId);
+    }
+    updateCompareBar();
+}
+
+function updateCompareBar() {
+    const bar = document.getElementById('compareBar');
+    const countEl = document.getElementById('compareCount');
+    if (!bar) return;
+    if (compareList.length > 0) {
+        bar.classList.remove('d-none');
+        countEl.textContent = compareList.length;
+    } else {
+        bar.classList.add('d-none');
+    }
+}
+
+function clearCompare() {
+    compareList = [];
+    document.querySelectorAll('.compare-check').forEach(cb => cb.checked = false);
+    updateCompareBar();
+}
+
+function openCompareModal() {
+    if (compareList.length < 2) {
+        showToast('Select at least 2 jobs to compare.', 'warning');
+        return;
+    }
+
+    const thead = document.querySelector('#compareTable thead tr');
+    const tbody = document.getElementById('compareTableBody');
+    // rebuild header
+    thead.innerHTML = '<th style="width:120px; font-size:0.75rem; background: var(--bg-canvas);">ATTRIBUTE</th>';
+    compareList.forEach(j => {
+        thead.innerHTML += `<th style="font-size:0.82rem; background: var(--bg-canvas);">
+            <div class="fw-bold">${j.title}</div>
+            <div class="text-muted" style="font-size:0.72rem;">${j.company}</div>
+        </th>`;
+    });
+
+    const rows = [
+        { label: 'Company', key: 'company' },
+        { label: 'Location', key: 'location' },
+        { label: 'Salary', key: 'salary' },
+        { label: 'Job Type', key: 'type' },
+        { label: 'Experience', key: 'exp' },
+        { label: 'Match Score', key: 'match', suffix: '%' },
+    ];
+    tbody.innerHTML = '';
+    rows.forEach(row => {
+        let tr = `<tr><td class="fw-bold" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px;">${row.label}</td>`;
+        compareList.forEach(j => {
+            let val = j[row.key] || '—';
+            if (row.suffix && val !== '—') val += row.suffix;
+            if (row.key === 'match') {
+                const pct = parseInt(val);
+                const color = pct >= 70 ? 'var(--success)' : pct >= 35 ? 'var(--primary)' : 'var(--text-muted)';
+                val = `<span style="font-weight:700; color:${color};">${val}</span>`;
+            }
+            tr += `<td style="font-size:0.85rem;">${val}</td>`;
+        });
+        tr += '</tr>';
+        tbody.innerHTML += tr;
+    });
+
+    // Apply links row
+    let applyRow = '<tr><td class="fw-bold" style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">APPLY</td>';
+    compareList.forEach(j => {
+        if (appliedJobIds.has(parseInt(j.id))) {
+            applyRow += `<td><button class="btn btn-secondary btn-sm px-3 fw-semibold" disabled>Already Applied</button></td>`;
+        } else {
+            applyRow += `<td><a href="${j.link}" target="_blank" class="btn btn-primary btn-sm px-3 fw-semibold external-apply-btn" data-id="${j.id}" data-company="${j.company}" data-title="${j.title}" data-type="job"><i class="fa-solid fa-bolt me-1"></i>Apply</a></td>`;
+        }
+    });
+    applyRow += '</tr>';
+    tbody.innerHTML += applyRow;
+
+    new bootstrap.Modal(document.getElementById('compareModal')).show();
+}
+
+/* ============================
+   JOB ALERTS (localStorage)
+   ============================ */
+function openAlertModal() {
+    // Pre-fill from current filters
+    const searchInput = document.querySelector('#filterForm [name="search"]');
+    const locInput = document.querySelector('#filterForm [name="location"]');
+    if (searchInput && searchInput.value) document.getElementById('alertKeyword').value = searchInput.value;
+    if (locInput && locInput.value) document.getElementById('alertLocation').value = locInput.value;
+    new bootstrap.Modal(document.getElementById('alertModal')).show();
+}
+
+function saveJobAlert() {
+    const keyword  = document.getElementById('alertKeyword').value.trim();
+    const location = document.getElementById('alertLocation').value.trim();
+    const skill    = document.getElementById('alertSkill').value;
+    if (!keyword && !location && !skill) {
+        showToast('Please specify at least one criteria.', 'warning');
+        return;
+    }
+    let alerts = JSON.parse(localStorage.getItem('ccJobAlerts') || '[]');
+    alerts.push({ keyword, location, skill, createdAt: Date.now() });
+    localStorage.setItem('ccJobAlerts', JSON.stringify(alerts.slice(-5))); // max 5 alerts
+    bootstrap.Modal.getInstance(document.getElementById('alertModal')).hide();
+    showToast(`Alert set! We\'ll highlight matching jobs.`, 'success');
+    renderActiveAlerts();
+}
+
+function deleteAlert(idx) {
+    let alerts = JSON.parse(localStorage.getItem('ccJobAlerts') || '[]');
+    alerts.splice(idx, 1);
+    localStorage.setItem('ccJobAlerts', JSON.stringify(alerts));
+    renderActiveAlerts();
+    showToast('Alert removed.', 'info');
+}
+
+function renderActiveAlerts() {
+    const container = document.getElementById('activeAlertsContainer');
+    if (!container) return;
+    const alerts = JSON.parse(localStorage.getItem('ccJobAlerts') || '[]');
+    if (!alerts.length) { container.innerHTML = ''; return; }
+    container.innerHTML = alerts.map((a, i) => {
+        const parts = [a.keyword, a.location, a.skill].filter(Boolean);
+        return `<div class="alert-tag d-flex align-items-center justify-content-between gap-1 mb-1">
+            <span style="font-size:0.72rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><i class="fa-solid fa-bell me-1" style="color:var(--primary); font-size:0.6rem;"></i>${parts.join(' · ')}</span>
+            <button onclick="deleteAlert(${i})" class="btn p-0 border-0" style="font-size:0.65rem; color:var(--danger); line-height:1;">✕</button>
+        </div>`;
+    }).join('');
+}
+
+// Render alerts on load
+document.addEventListener('DOMContentLoaded', renderActiveAlerts);
+
+/* ============================
+   JOB DETAIL MODAL
+   ============================ */
+function openJobDetail(card) {
+    if (!card) return;
+    const d = card.dataset;
+
+    // Header
+    document.getElementById('detailTitle').textContent = d.jobTitle || '';
+    document.getElementById('detailCompany').textContent = d.jobCompany || '';
+    document.getElementById('detailLogo').textContent = (d.jobCompany?.[0] || '?').toUpperCase();
+
+    // Info cards
+    document.getElementById('detailLocation').textContent = d.jobLocation || 'Remote';
+    document.getElementById('detailSalary').textContent = d.jobSalary || 'TBD';
+    document.getElementById('detailType').textContent = d.jobType || 'Full-Time';
+    document.getElementById('detailExp').textContent = d.jobExp || 'Any';
+
+    // Match score
+    const matchWrap = document.getElementById('detailMatchWrap');
+    const matchCircle = document.getElementById('detailMatchCircle');
+    const matchVal = parseInt(d.jobMatch) || 0;
+    if (matchVal > 0) {
+        matchWrap.classList.remove('d-none');
+        matchCircle.textContent = matchVal + '%';
+        if (matchVal >= 70) {
+            matchCircle.style.background = 'linear-gradient(135deg, var(--success), #0ea5e9)';
+            matchCircle.style.color = '#fff';
+        } else if (matchVal >= 35) {
+            matchCircle.style.background = 'linear-gradient(135deg, var(--primary), #8b5cf6)';
+            matchCircle.style.color = '#fff';
+        } else {
+            matchCircle.style.background = 'var(--bg-canvas)';
+            matchCircle.style.color = 'var(--text-muted)';
+            matchCircle.style.border = '2px solid var(--border-color)';
+        }
+    } else {
+        matchWrap.classList.add('d-none');
+    }
+
+    // Skills
+    const skillsWrap = document.getElementById('detailSkillsWrap');
+    const skillsDiv = document.getElementById('detailSkills');
+    const skills = (d.jobSkills || '').split(',').filter(Boolean);
+    if (skills.length) {
+        skillsWrap.classList.remove('d-none');
+        skillsDiv.innerHTML = skills.map(s =>
+            `<span class="skill-tag" style="font-size:0.75rem; padding:0.25rem 0.65rem;">${s.trim()}</span>`
+        ).join('');
+    } else {
+        skillsWrap.classList.add('d-none');
+    }
+
+    // Description
+    document.getElementById('detailDescription').textContent = d.jobDesc || 'No description available.';
+
+    // Apply button
+    const detailApplyBtn = document.getElementById('detailApplyBtn');
+    detailApplyBtn.dataset.id = d.jobId;
+    detailApplyBtn.dataset.company = d.jobCompany;
+    detailApplyBtn.dataset.title = d.jobTitle;
+    detailApplyBtn.dataset.type = "job";
+    detailApplyBtn.href = d.jobLink || '#';
+    
+    if (appliedJobIds.has(parseInt(d.jobId))) {
+        detailApplyBtn.setAttribute('disabled', 'true');
+        detailApplyBtn.classList.add('disabled');
+        detailApplyBtn.innerHTML = 'Already Applied';
+    } else {
+        detailApplyBtn.removeAttribute('disabled');
+        detailApplyBtn.classList.remove('disabled');
+        detailApplyBtn.innerHTML = '<i class="fa-solid fa-bolt me-2"></i>Quick Apply';
+    }
+
+    // Track view
+    trackView(parseInt(d.jobId), d.jobTitle, d.jobCompany);
+
+    new bootstrap.Modal(document.getElementById('jobDetailModal')).show();
+}
+</script>
+{% endblock %}

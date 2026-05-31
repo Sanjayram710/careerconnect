@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Bookmarked Insights - CareerConnect{% endblock %}
+
+{% block content %}
+<!-- Back Navigation -->
+<div class="mb-4">
+    <a href="{{ url_for('student.companies_list') }}" class="text-decoration-none text-muted small fw-semibold">
+        <i class="fa-solid fa-arrow-left me-1.5"></i> Back to Companies
+    </a>
+</div>
+
+<!-- Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold text-dark mb-1"><i class="fa-solid fa-bookmark text-primary me-2"></i>Bookmarked News & Insights</h1>
+        <p class="text-muted" style="font-size: 0.92rem;">Your personalized archive of corporate announcements, technological developments, and hiring updates.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Main Content Panel (Left & Center) -->
+    <div class="col-lg-9 col-md-8">
+        <!-- Search Bookmarks Box -->
+        <div class="card border-0 mb-4 p-3" style="background: var(--bg-surface);">
+            <form action="{{ url_for('student.bookmarked_news_list') }}" method="GET" class="d-flex align-items-center gap-2">
+                <div class="position-relative flex-grow-1">
+                    <i class="fa-solid fa-magnifying-glass position-absolute text-light" style="left: 14px; top: 50%; transform: translateY(-50%);"></i>
+                    <input type="text" name="search" class="form-control" placeholder="Search bookmarked headlines or companies..." value="{{ search_query or '' }}" style="padding-left: 2.5rem !important;">
+                </div>
+                <button type="submit" class="btn btn-primary py-2 px-3">Search Bookmarks</button>
+                {% if search_query %}
+                    <a href="{{ url_for('student.bookmarked_news_list') }}" class="btn btn-secondary py-2 px-3">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Bookmarks List -->
+        <div class="d-flex flex-column gap-3" id="bookmarksContainer">
+            {% if bookmarks %}
+                {% for b in bookmarks %}
+                    <div class="card border-0 p-4 bookmark-card" id="bookmark-card-{{ b.id }}" style="background: var(--bg-surface); transition: var(--transition-slow);">
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary fw-bold" style="font-size: 0.7rem; text-transform: uppercase; padding: 0.3rem 0.5rem;">
+                                    {{ b.company_name }}
+                                </span>
+                                <span class="text-muted small" style="font-size: 0.72rem;">
+                                    Source: <strong>{{ b.source }}</strong> • Saved on: {{ b.created_at.strftime('%Y-%m-%d') }}
+                                </span>
+                            </div>
+                            
+                            <!-- Remove Bookmark -->
+                            <button class="btn btn-link p-1.5 remove-bookmark-btn" 
+                                    data-id="{{ b.id }}"
+                                    data-company="{{ b.company_name }}"
+                                    data-title="{{ b.title }}"
+                                    data-url="{{ b.url }}"
+                                    title="Remove Bookmark" 
+                                    style="border-radius: 50% !important; background: var(--bg-canvas); border: 1px solid var(--border-color); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-trash-can text-danger" style="font-size: 0.8rem;"></i>
+                            </button>
+                        </div>
+
+                        <h3 class="h6 fw-bold mb-2 fs-5">
+                            <a href="{{ b.url }}" target="_blank" class="text-decoration-none text-dark hover-primary" style="line-height: 1.45;">
+                                {{ b.title }}
+                            </a>
+                        </h3>
+
+                        <p class="text-muted mb-3" style="font-size: 0.84rem; line-height: 1.6;">
+                            {{ b.summary or 'No summary summary available. Please check the original source link for complete details.' }}
+                        </p>
+
+                        <div>
+                            <a href="{{ b.url }}" target="_blank" class="btn btn-outline-primary btn-sm py-1.5 px-3" style="font-size: 0.76rem !important; border-radius: 8px !important;">
+                                Read Full Article <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 0.65rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="card border-0 text-center py-5 text-muted">
+                    <div class="py-4">
+                        <i class="fa-regular fa-bookmark fs-1 mb-3 text-light"></i>
+                        <h4 class="fw-bold text-dark">No Bookmarked Articles</h4>
+                        {% if search_query %}
+                            <p class="mb-0 small">No bookmarks match your search terms.</p>
+                        {% else %}
+                            <p class="mb-0 small">You haven't bookmarked any news articles yet. Head back to the <a href="{{ url_for('student.companies_list') }}" class="text-primary fw-semibold text-decoration-none">Companies Directory</a> and start saving insights!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sidebar Widget (Right) -->
+    <div class="col-lg-3 col-md-4">
+        <!-- Quick stats card -->
+        <div class="card border-0 p-4 text-center" style="background: var(--bg-surface);">
+            <div class="navbar-avatar m-auto mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; border-radius: 50%;">
+                <i class="fa-solid fa-bookmark" style="font-size: 1.4rem;"></i>
+            </div>
+            <h4 class="h6 fw-bold text-dark mb-1">Archive Summary</h4>
+            <p class="text-muted small mb-3">Keep track of updates regarding interviews and industry trends.</p>
+            <div class="p-3 rounded-3" style="background: var(--bg-canvas); border: 1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted small">Total Bookmarks:</span>
+                    <strong class="text-dark" id="totalBookmarksCount" style="font-size: 1.1rem;">{{ bookmarks|length }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Handle AJAX Bookmark Removal with premium fade-out animation
+    const removeButtons = document.querySelectorAll('.remove-bookmark-btn');
+    const bookmarksContainer = document.getElementById('bookmarksContainer');
+    const totalCountEl = document.getElementById('totalBookmarksCount');
+    
+    removeButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const bookmarkId = btn.dataset.id;
+            const companyName = btn.dataset.company;
+            const title = btn.dataset.title;
+            const url = btn.dataset.url;
+            const card = document.getElementById(`bookmark-card-${bookmarkId}`);
+            
+            try {
+                const response = await fetch('/company/news/bookmark', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        company_name: companyName,
+                        title: title,
+                        url: url
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && !result.bookmarked) {
+                    showToast('Bookmark removed.', 'info');
+                    
+                    // Trigger fade-out animation
+                    if (card) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(15px)';
+                        
+                        setTimeout(() => {
+                            card.remove();
+                            // Update total counts
+                            const currentCount = parseInt(totalCountEl.textContent) - 1;
+                            totalCountEl.textContent = currentCount;
+                            
+                            // Check if zero left
+                            if (currentCount === 0) {
+                                bookmarksContainer.innerHTML = `
+                                    <div class="card border-0 text-center py-5 text-muted">
+                                        <div class="py-4">
+                                            <i class="fa-regular fa-bookmark fs-1 mb-3 text-light"></i>
+                                            <h4 class="fw-bold text-dark">No Bookmarked Articles</h4>
+                                            <p class="mb-0 small">You haven't bookmarked any news articles yet. Head back to the <a href="/companies" class="text-primary fw-semibold text-decoration-none">Companies Directory</a> and start saving insights!</p>
+                                        </div>
+                                    </div>`;
+                            }
+                        }, 400);
+                    }
+                } else {
+                    showToast(result.message || 'Failed to remove bookmark.', 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Could not reach bookmark server.', 'danger');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.hover-primary:hover {
+    color: var(--primary) !important;
+}
+</style>
+{% endblock %}
