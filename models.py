@@ -143,7 +143,7 @@ class LiveJob(db.Model):
     lastSyncedAt = db.Column(db.DateTime,    nullable=True)
     createdAt    = db.Column(db.DateTime,    default=datetime.utcnow)
     updatedAt    = db.Column(db.DateTime,    default=datetime.utcnow, onupdate=datetime.utcnow)
-    sourceId     = db.Column(db.String(100), nullable=True, index=True)
+    sourceId     = db.Column(db.String(100), nullable=True, unique=True, index=True)
     sourceName   = db.Column(db.String(100), nullable=True)
     is_expired   = db.Column(db.Boolean,     default=False, nullable=False, index=True)
 
@@ -173,7 +173,7 @@ class LiveInternship(db.Model):
     lastSyncedAt = db.Column(db.DateTime,    nullable=True)
     createdAt    = db.Column(db.DateTime,    default=datetime.utcnow)
     updatedAt    = db.Column(db.DateTime,    default=datetime.utcnow, onupdate=datetime.utcnow)
-    sourceId     = db.Column(db.String(100), nullable=True, index=True)
+    sourceId     = db.Column(db.String(100), nullable=True, unique=True, index=True)
     sourceName   = db.Column(db.String(100), nullable=True)
     is_expired   = db.Column(db.Boolean,     default=False, nullable=False, index=True)
 
