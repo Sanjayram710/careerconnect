@@ -11,6 +11,7 @@ APP_KEY = "89654003b4f0859722eae1559cc7929f"
 class JobSyncService:
     @staticmethod
     def sync():
+        print("=== JOB SYNC STARTED ===")
         """
         Automatically refresh and sync Jobs data:
         - Fetch from Adzuna API page-by-page.
@@ -50,6 +51,7 @@ class JobSyncService:
                 for attempt in range(1, 4):
                     try:
                         response = requests.get(url, timeout=15)
+                        print("Status Code:", response.status_code)
                         response.raise_for_status()
                         break
                     except Exception as e:
@@ -59,6 +61,7 @@ class JobSyncService:
                         time.sleep(2)
 
                 data = response.json()
+                print("Results Count:", len(data.get("results", [])))
                 if 'results' not in data:
                     continue
 
