@@ -249,6 +249,10 @@ class InternshipSyncService:
                 for attempt in range(1, 4):
                     try:
                         response = requests.get(url, timeout=15)
+                        print("URL:", url)
+                        print("Status Code:", response.status_code)
+                        print("Response Text:", response.text[:500])
+                        
                         response.raise_for_status()
                         break
                     except Exception as e:
