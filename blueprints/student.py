@@ -70,6 +70,7 @@ def get_profile_completion(user):
 
     return int((score / total) * 100)
 @student_bp.route('/dashboard')
+@student_bp.route('/student/dashboard')
 @login_required
 def dashboard():
 

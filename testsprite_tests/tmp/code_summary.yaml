@@ -1,0 +1,45 @@
+version: "2"
+type: backend
+tech_stack:
+  - Python
+  - Flask
+  - PostgreSQL / SQLite
+  - SQLAlchemy
+features:
+  - name: Authentication
+    description: Google OAuth and traditional login using Flask-Login
+    files:
+      - app.py
+      - blueprints/auth.py
+    endpoints:
+      - method: GET
+        path: /google/login
+        description: Redirect to Google OAuth
+        auth_required: false
+      - method: GET
+        path: /google/callback
+        description: Google OAuth callback
+        auth_required: false
+      - method: GET
+        path: /
+        description: Root index redirect
+        auth_required: false
+  - name: Student Portal
+    description: Dashboard for students to view jobs, apply, etc.
+    files:
+      - blueprints/student.py
+    endpoints:
+      - method: GET
+        path: /student/dashboard
+        description: Student dashboard
+        auth_required: true
+  - name: Admin Portal
+    description: Admin controls for managing placements, students, etc.
+    files:
+      - blueprints/admin.py
+    endpoints:
+      - method: GET
+        path: /admin/dashboard
+        description: Admin dashboard
+        auth_required: true
+known_limitations: []

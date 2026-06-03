@@ -4,3 +4,4 @@ __pycache__/
 placement.db
 uploads/
 .vscode/
+testsprite_tests\tmp\config.json

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "TC001",
+    "title": "getgoogleloginredirect",
+    "description": "Verify that a GET request to /google/login redirects the user to the Google OAuth consent flow without requiring authentication."
+  },
+  {
+    "id": "TC002",
+    "title": "getgooglecallbackvalidcode",
+    "description": "Verify that a GET request to /google/callback with a valid authorization code establishes an authenticated session and redirects the user to the root / endpoint."
+  },
+  {
+    "id": "TC003",
+    "title": "getgooglecallbackinvalidcode",
+    "description": "Verify that a GET request to /google/callback with an invalid or expired authorization code results in authentication failure and the user remains unauthenticated."
+  },
+  {
+    "id": "TC004",
+    "title": "getrootindexredirect",
+    "description": "Verify that a GET request to / redirects the user to the appropriate landing page or portal based on their authentication status and role."
+  },
+  {
+    "id": "TC005",
+    "title": "getstudentdashboardwithauth",
+    "description": "Verify that a GET request to /student/dashboard with a valid authenticated student session returns HTTP 200 with the student dashboard content."
+  },
+  {
+    "id": "TC006",
+    "title": "getstudentdashboardwithoutauth",
+    "description": "Verify that a GET request to /student/dashboard without authentication returns HTTP 401 unauthorized or redirects to the authentication flow."
+  },
+  {
+    "id": "TC007",
+    "title": "getadmindashboardwithauth",
+    "description": "Verify that a GET request to /admin/dashboard with a valid authenticated admin session returns HTTP 200 with the admin dashboard content."
+  },
+  {
+    "id": "TC008",
+    "title": "getadmindashboardwithoutauth",
+    "description": "Verify that a GET request to /admin/dashboard without authentication returns HTTP 401 unauthorized or redirects to the authentication flow."
+  }
+]

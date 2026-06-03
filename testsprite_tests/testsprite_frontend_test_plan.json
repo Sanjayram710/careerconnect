@@ -1,0 +1,324 @@
+[
+  {
+    "id": "TC001",
+    "title": "Login page renders correctly for unauthenticated users",
+    "description": "Verify the /login page renders the login form with all required elements for unauthenticated visitors.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /login" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains a login form with email and password fields" },
+      { "type": "assertion", "description": "Verify Google OAuth login button is present" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Register page renders correctly for unauthenticated users",
+    "description": "Verify the /register page renders the registration form with all required fields.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /register" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains a registration form with name, email, phone, location, skills and password fields" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Unauthenticated user is redirected from student dashboard",
+    "description": "Verify unauthenticated access to /student/dashboard is blocked and redirects to login.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /student/dashboard without any session cookie" },
+      { "type": "assertion", "description": "Verify the response is a 302 redirect" },
+      { "type": "assertion", "description": "Verify the Location header points to /login or an auth page" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Unauthenticated user is redirected from admin dashboard",
+    "description": "Verify unauthenticated access to /admin/dashboard is blocked and redirects to login.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /admin/dashboard without any session cookie" },
+      { "type": "assertion", "description": "Verify the response is a 302 redirect" },
+      { "type": "assertion", "description": "Verify the Location header points to /login or an auth page" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Google OAuth login redirects to Google consent screen",
+    "description": "Verify that GET /google/login redirects to accounts.google.com consent screen.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /google/login" },
+      { "type": "assertion", "description": "Verify the response is a 302 redirect" },
+      { "type": "assertion", "description": "Verify the Location header contains accounts.google.com" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Invalid Google OAuth code redirects to login with error",
+    "description": "Verify that /google/callback with an invalid code does not create a session and redirects to /login.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /google/callback?code=invalid_expired_code_xyz" },
+      { "type": "assertion", "description": "Verify the response is not a 200 OK (should be redirect or error)" },
+      { "type": "assertion", "description": "Verify the user remains unauthenticated and is redirected to login" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Student dashboard renders for authenticated student",
+    "description": "Verify the student dashboard loads correctly after login using the test helper endpoint.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to establish authenticated session" },
+      { "type": "assertion", "description": "Verify the response is 200 OK" },
+      { "type": "action", "description": "Navigate to /student/dashboard" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains dashboard content including career workspace elements" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Admin dashboard renders for authenticated admin",
+    "description": "Verify the admin dashboard loads correctly after admin login using the test helper endpoint.",
+    "category": "Admin Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-admin to establish authenticated admin session" },
+      { "type": "assertion", "description": "Verify the response is 200 OK" },
+      { "type": "action", "description": "Navigate to /admin/dashboard" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains admin management content" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Root route redirects authenticated student to student dashboard",
+    "description": "Verify that / redirects an authenticated student to /student/dashboard or equivalent.",
+    "category": "Navigation",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /" },
+      { "type": "assertion", "description": "Verify the final page is the student dashboard with 200 OK" },
+      { "type": "assertion", "description": "Verify the URL contains dashboard" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC010",
+    "title": "Root route redirects authenticated admin to admin dashboard",
+    "description": "Verify that / redirects an authenticated admin to /admin/dashboard.",
+    "category": "Navigation",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-admin to login as admin" },
+      { "type": "action", "description": "Navigate to /" },
+      { "type": "assertion", "description": "Verify the final page is the admin dashboard with 200 OK" },
+      { "type": "assertion", "description": "Verify admin dashboard content is visible" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC011",
+    "title": "Jobs page renders for authenticated student",
+    "description": "Verify the /jobs page (campus drive jobs) loads with job listings for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /jobs" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains job listing content" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Explore Jobs page renders for authenticated student",
+    "description": "Verify the /explore-jobs page (live jobs from API) loads for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /explore-jobs" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains live job listings" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Internships page renders for authenticated student",
+    "description": "Verify the /internships page loads with internship listings for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /internships" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains internship listings" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Profile page renders for authenticated student",
+    "description": "Verify the /profile page loads and shows the student's profile information.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /profile" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains profile form or student information" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Applications page renders for authenticated student",
+    "description": "Verify the /applications page shows the student's job application pipeline.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /applications" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains application tracking content" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Messages page renders for authenticated student",
+    "description": "Verify the /messages page loads and shows inbox messages for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /messages" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains message inbox content" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC017",
+    "title": "Calendar page renders for authenticated student",
+    "description": "Verify the /calendar page loads with placement event calendar for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /calendar" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains calendar/event content" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC018",
+    "title": "Companies page renders for authenticated student",
+    "description": "Verify the /companies page loads and shows company listings for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /companies" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains company listing content" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC019",
+    "title": "Settings page renders for authenticated student",
+    "description": "Verify the /settings page loads and shows user settings options for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /settings" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains settings/preferences content" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC020",
+    "title": "Saved Jobs page renders for authenticated student",
+    "description": "Verify the /saved-jobs page loads and shows bookmarked jobs for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /saved-jobs" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains saved/bookmarked jobs content" }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC021",
+    "title": "Bookmarked News page renders for authenticated student",
+    "description": "Verify the /bookmarked-news page loads for an authenticated student.",
+    "category": "Student Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /bookmarked-news" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains bookmarked news content" }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC022",
+    "title": "Forgot Password page renders correctly",
+    "description": "Verify the /forgot-password page renders with the password reset form.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Navigate to /forgot-password" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the page contains a forgot password form with email input" }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC023",
+    "title": "Logout endpoint clears session",
+    "description": "Verify that GET /logout clears the user session and redirects to login.",
+    "category": "Authentication",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /logout" },
+      { "type": "assertion", "description": "Verify the response redirects to /login" },
+      { "type": "action", "description": "Navigate to /student/dashboard after logout" },
+      { "type": "assertion", "description": "Verify access is denied and redirected to login again" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC024",
+    "title": "Admin can view student list",
+    "description": "Verify that the admin dashboard includes access to the student list/management section.",
+    "category": "Admin Portal",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-admin to login as admin" },
+      { "type": "action", "description": "Navigate to /admin/dashboard" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify admin dashboard contains student management or statistics section" }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC025",
+    "title": "API calendar events endpoint returns JSON for authenticated student",
+    "description": "Verify that /api/calendar/events returns valid JSON for an authenticated student.",
+    "category": "API",
+    "steps": [
+      { "type": "action", "description": "Call GET /test/login-student to login" },
+      { "type": "action", "description": "Navigate to /api/calendar/events" },
+      { "type": "assertion", "description": "Verify HTTP 200 OK response" },
+      { "type": "assertion", "description": "Verify the response Content-Type is application/json" }
+    ],
+    "priority": "Medium"
+  }
+]
