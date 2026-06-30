@@ -183,12 +183,6 @@ The project was developed as a hands-on full-stack learning project, covering ba
 
 <br><br>
 
-<h3>💼 Dashboard Page </h3>
-<img src="screenshots/dashboard.png" alt="CareerConnect Dashboard" width="90%"/>
-
-
-<br><br>
-
 <h3>💼 Job Listings</h3>
 <img src="screenshots/jobs.png" alt="CareerConnect Jobs" width="90%"/>
 
