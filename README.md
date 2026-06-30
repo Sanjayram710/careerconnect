@@ -479,7 +479,6 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for full details
 
 *CS Student · Full-Stack Developer · Python Enthusiast*
 
-[![GitHub](https://img.shields.io/badge/GitHub-@sanjayram-181717?style=for-the-badge&logo=github)](https://github.com/Sanjay-ram-srinivasan/careerconnect)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/sanjay-ram-s-498681369/)
 [![Email](https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail)](mailto:sanjaysrinivasan.ram@email.com)
 
